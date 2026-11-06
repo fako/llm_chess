@@ -1,0 +1,30 @@
+# OS + home exclusions
+.ssh
+.local
+.config
+.bashrc
+.bash_history
+.bash_logout
+.profile
+.lesshst
+.viminfo
+.psql_history
+.npm
+
+# IDE exclusions
+.cache/
+.cursor-server/
+.cursor/
+.codex/
+.claude/
+.claude.json
+
+# Python exclusions
+__pycache__
+venv/
+*.egg-info/
+
+# Local runtime state
+.env
+staticfiles/
+data/
