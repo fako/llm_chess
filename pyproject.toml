@@ -15,7 +15,11 @@ dependencies = [
     "requests==2.32.5",
     "uvicorn[standard]==0.37.0",
     "celery[redis]==5.5.3",
+    "pydantic==2.12.5",
+    "beautifulsoup4==4.14.2",
+    "chess==1.11.2",
+    "django-htmx==1.26.0",
 ]
 
 [tool.setuptools.packages.find]
-include = ["web*"]
+include = ["web*", "accounts*", "puzzles*", "vendors*", "datagrowth*"]

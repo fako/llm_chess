@@ -28,3 +28,6 @@ venv/
 .env
 staticfiles/
 data/
+
+# Node exclusions
+node_modules/

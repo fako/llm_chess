@@ -1,0 +1,10 @@
+{% extends "base.htmx" %}
+{% block title %}{{ category.name }} · LLM Chess{% endblock %}
+{% block scripts %}<script src="{{ static('puzzles/board.js') }}" defer></script>{% endblock %}
+{% block content %}
+  <div class="mb-3 flex items-center justify-between gap-3">
+    <a href="{{ url('puzzles:home') }}" class="text-sm text-muted hover:text-walnut">&larr; Categories</a>
+    <span class="text-sm text-muted">{{ category.name }} · #{{ puzzle.pk }}</span>
+  </div>
+  {% include "puzzles/partials/puzzle.htmx" %}
+{% endblock %}

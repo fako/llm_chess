@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FAF6EE">
+  <title>{% block title %}LLM Chess{% endblock %}</title>
+  <link rel="stylesheet" href="{{ static('css/tailwind.build.css') }}">
+  <script src="{{ static('js/htmx.min.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</head>
+<body class="min-h-dvh bg-paper font-sans text-ink antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  {{ piece_sprite() }}
+  <header class="border-b border-line bg-card/80">
+    <div class="mx-auto flex max-w-xl items-center justify-between gap-4 px-4 py-3">
+      <a href="{{ url('puzzles:home') }}" class="flex items-center gap-2 font-serif text-xl text-ink">
+        <svg class="h-7 w-7" viewBox="0 0 45 45" aria-hidden="true"><use href="#piece-black-knight"></use></svg>
+        LLM Chess
+      </a>
+      {% if request.user.is_authenticated %}
+        <form method="post" action="{{ url('accounts:logout') }}">
+          {{ csrf_input }}
+          <button class="text-sm text-muted underline-offset-4 hover:text-walnut hover:underline">Log out</button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+  <main class="mx-auto max-w-xl px-4 pb-10 pt-5">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

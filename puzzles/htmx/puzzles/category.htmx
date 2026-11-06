@@ -1,0 +1,46 @@
+{% extends "base.htmx" %}
+{% block title %}{{ category.name }} · LLM Chess{% endblock %}
+{% block content %}
+  <div class="space-y-5">
+    <div>
+      <a href="{{ url('puzzles:home') }}" class="text-sm text-muted hover:text-walnut">&larr; All categories</a>
+      <h1 class="mt-1 font-serif text-3xl">{{ category.name }}</h1>
+    </div>
+    {% if not has_puzzles %}
+      <div class="card p-5 text-muted">There are no puzzles in this category yet. Check back soon.</div>
+    {% elif open_progress %}
+      <div class="card p-5">
+        <h2 class="font-serif text-xl">You solved every new puzzle</h2>
+        <p class="mt-1 text-muted">
+          Each puzzle has more lines to discover: pick one and find the mate against other defences.
+        </p>
+      </div>
+      <ul class="space-y-3">
+        {% for progress in open_progress %}
+          {% set done = progress.completed_branches|length %}
+          {% set total = progress.puzzle.branches|length %}
+          <li>
+            <a href="{{ url('puzzles:puzzle', kwargs={'pk': progress.puzzle.pk}) }}"
+               class="card flex items-center justify-between gap-4 p-4 transition hover:border-walnut-light">
+              <div class="min-w-0">
+                <h3 class="truncate font-medium">{{ progress.puzzle.title or "Puzzle #" ~ progress.puzzle.pk }}</h3>
+                <p class="text-sm text-muted">{{ progress.puzzle.perspective|capitalize }} to play</p>
+              </div>
+              <div class="w-24 shrink-0 text-right">
+                <div class="text-sm font-medium">{{ done }} / {{ total }} lines</div>
+                <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
+                  <div class="h-full rounded-full bg-sage" style="width: {{ (100 * done / total)|round|int }}%"></div>
+                </div>
+              </div>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="card p-5">
+        <h2 class="font-serif text-xl">All done</h2>
+        <p class="mt-1 text-muted">You found every line of every puzzle in this category. New puzzles are on their way.</p>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

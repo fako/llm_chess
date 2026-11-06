@@ -1,0 +1,14 @@
+{% extends "base.htmx" %}
+{% block title %}Sign up · LLM Chess{% endblock %}
+{% block content %}
+  <div class="space-y-5">
+    <div>
+      <h1 class="font-serif text-3xl">Create an account</h1>
+      <p class="mt-1 text-muted">Your progress on every puzzle is kept with your account.</p>
+    </div>
+    {% with submit="Sign up", next=None %}{% include "accounts/_form.htmx" %}{% endwith %}
+    <p class="text-center text-sm text-muted">
+      Already have an account? <a href="{{ url('accounts:login') }}" class="font-medium text-walnut underline underline-offset-4">Log in</a>
+    </p>
+  </div>
+{% endblock %}

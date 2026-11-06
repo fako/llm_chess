@@ -1,0 +1,105 @@
+{% set progress = state.progress %}
+{% set action_url = url('puzzles:puzzle_action', kwargs={'pk': puzzle.pk, 'action': 'ACTION'}) %}
+<div id="puzzle" class="space-y-4"
+     data-phase="{{ state.phase.value }}"
+     data-color="{{ puzzle.perspective }}"
+     data-move-url="{{ action_url|replace('ACTION', 'move') }}"
+     data-legal='{{ state.legal_moves|tojson }}'>
+
+  <div class="flex items-end justify-between gap-3">
+    <div class="min-w-0">
+      <h1 class="truncate font-serif text-2xl">{{ puzzle.title or category.name }}</h1>
+      <p class="text-sm text-muted">
+        <span class="mr-1 inline-block h-3 w-3 rounded-full border border-ink/40 align-[-1px]
+                     {{ 'bg-white' if puzzle.perspective == 'white' else 'bg-ink' }}"></span>
+        {{ puzzle.perspective|capitalize }} to play and mate in {{ category.mate_in }}
+      </p>
+    </div>
+    <div class="shrink-0 text-right text-xs text-muted">
+      <div>{{ progress.completed_branches|length }} / {{ puzzle.branches|length }} lines</div>
+      <div>{{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints</div>
+    </div>
+  </div>
+
+  <div class="px-[7px]">
+    <div class="board" role="grid" aria-label="Chess board">
+      {% for square in squares %}
+        <button type="button" data-square="{{ square.name }}"
+                {% if square.piece %}data-piece="{{ square.piece }}"{% endif %}
+                {% if square.is_own %}data-own{% endif %}
+                aria-label="{{ square.name }}"
+                class="square {{ 'light' if square.is_light else 'dark' }}{{ ' occupied' if square.piece }}{{ ' last-move' if square.is_last_move }}{{ ' hint' if square.is_hint }}{{ ' wrong' if square.is_wrong }}">
+          {% if square.piece %}
+            <svg class="piece" viewBox="0 0 45 45" aria-hidden="true"><use href="#{{ piece_id(square.piece) }}"></use></svg>
+          {% endif %}
+          {% if square.rank_label %}<span class="coordinate rank">{{ square.rank_label }}</span>{% endif %}
+          {% if square.file_label %}<span class="coordinate file">{{ square.file_label }}</span>{% endif %}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if message %}
+    <p class="rounded-lg bg-brick/10 px-3 py-2 text-center text-sm font-medium text-brick" role="status">{{ message }}</p>
+  {% endif %}
+
+  {% if state.phase.value == 'move' %}
+    <div class="card space-y-3 p-4">
+      <p class="text-center">
+        {% if state.moves_left == 1 %}Your move: <strong>mate now.</strong>
+        {% else %}Your move: {{ state.moves_left }} moves to mate.{% endif %}
+        <span class="block text-sm text-muted">Tap a piece, then tap where it goes.</span>
+      </p>
+      {% if puzzle.hint and progress.hint_level >= 1 and not progress.line %}
+        <p class="rounded-lg bg-sage/15 px-3 py-2 text-center text-sm text-ink">{{ puzzle.hint }}</p>
+      {% endif %}
+      <div class="grid grid-cols-2 gap-2">
+        <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
+                hx-target="#puzzle" hx-swap="outerHTML"
+                {% if progress.hint_level >= 2 %}disabled{% endif %}>
+          {% if progress.hint_level == 0 %}Hint{% elif progress.hint_level == 1 %}Show move{% else %}Shown{% endif %}
+        </button>
+        <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
+                hx-target="#puzzle" hx-swap="outerHTML" {% if not progress.line %}disabled{% endif %}>
+          Start over
+        </button>
+      </div>
+    </div>
+
+  {% elif state.phase.value == 'reply' %}
+    <div class="card space-y-3 p-4">
+      <p class="text-center">
+        Good move. How does {{ 'black' if puzzle.perspective == 'white' else 'white' }} defend?
+        <span class="block text-sm text-muted">Pick the reply you want to beat.</span>
+      </p>
+      <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        {% for reply in state.replies %}
+          <button class="btn {{ 'border border-line bg-paper text-muted' if reply.is_completed else 'border border-walnut-light/60 bg-card text-ink hover:border-walnut' }} px-2 py-2.5 font-serif"
+                  hx-post="{{ action_url|replace('ACTION', 'reply') }}" hx-vals='{"move": "{{ reply.uci }}"}'
+                  hx-target="#puzzle" hx-swap="outerHTML"
+                  {% if reply.is_completed %}title="You already found the mate against this reply"{% endif %}>
+            {{ reply.san }}{% if reply.is_completed %}<span class="text-sage" aria-label="solved">&#10003;</span>{% endif %}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+  {% else %}
+    {% set open = progress.open_branches|length %}
+    <div class="card space-y-3 p-5 text-center">
+      <h2 class="font-serif text-2xl text-walnut">Checkmate!</h2>
+      <p class="text-muted">
+        {% if open %}You found {{ progress.completed_branches|length }} of {{ puzzle.branches|length }} lines.
+          {{ open }} other {{ 'defence is' if open == 1 else 'defences are' }} waiting.
+        {% else %}You found every line of this puzzle.{% endif %}
+      </p>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary">Next puzzle</a>
+        {% if open %}
+          <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
+                  hx-target="#puzzle" hx-swap="outerHTML">Try another defence</button>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>

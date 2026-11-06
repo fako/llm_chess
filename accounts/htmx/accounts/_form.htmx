@@ -1,0 +1,17 @@
+<form method="post" class="card space-y-4 p-5">
+  {{ csrf_input }}
+  {% if form.non_field_errors() %}
+    <div class="rounded-lg bg-brick/10 px-3 py-2 text-sm text-brick">
+      {% for error in form.non_field_errors() %}<p>{{ error }}</p>{% endfor %}
+    </div>
+  {% endif %}
+  {% for field in form %}
+    <div class="space-y-1">
+      <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-ink">{{ field.label }}</label>
+      {{ field.as_widget(attrs={"class": "field"}) }}
+      {% for error in field.errors %}<p class="text-sm text-brick">{{ error }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  <button type="submit" class="btn-primary w-full">{{ submit }}</button>
+</form>

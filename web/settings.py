@@ -20,6 +20,7 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://llm-chess.localhost:7000",
     "http://llm-chess.moko.local",
+    "http://llm-chess.moko.local:7000",
 ]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
@@ -31,6 +32,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_htmx",
+    "web",
+    "accounts",
+    "puzzles",
 ]
 
 MIDDLEWARE = [
@@ -41,11 +46,26 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "web.urls"
 
 TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.jinja2.Jinja2",
+        "DIRS": [],
+        "APP_DIRS": False,
+        "OPTIONS": {
+            "environment": "web.jinja2.environment",
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.csrf",
+            ],
+        },
+    },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
@@ -73,6 +93,11 @@ DATABASES = {
         "CONN_MAX_AGE": 60,
     }
 }
+
+AUTH_USER_MODEL = "accounts.User"
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "puzzles:home"
+LOGOUT_REDIRECT_URL = "accounts:login"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -103,3 +128,9 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Puzzle generation
+
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+PUZZLE_GENERATION_DIR = BASE_DIR / "data" / "datagrowth"

@@ -1,0 +1,28 @@
+{% extends "base.htmx" %}
+{% block content %}
+  <div class="space-y-5">
+    <div>
+      <h1 class="font-serif text-3xl">Choose your puzzles</h1>
+      <p class="mt-1 text-muted">Every puzzle is checked by a chess engine before it reaches you.</p>
+    </div>
+    <ul class="space-y-3">
+      {% for category in categories %}
+        <li>
+          <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}"
+             class="card flex items-center justify-between gap-4 p-4 transition hover:border-walnut-light active:scale-[0.99]">
+            <div class="min-w-0">
+              <h2 class="font-serif text-xl">{{ category.name }}</h2>
+              {% if category.description %}<p class="mt-0.5 text-sm text-muted">{{ category.description }}</p>{% endif %}
+            </div>
+            <div class="shrink-0 text-right">
+              <div class="text-2xl font-semibold text-walnut">{{ category.unsolved }}</div>
+              <div class="text-xs text-muted">new of {{ category.total }}</div>
+            </div>
+          </a>
+        </li>
+      {% else %}
+        <li class="card p-4 text-muted">There are no puzzle categories yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}
