@@ -19,10 +19,27 @@
             "configuration": {}
         }
     },
-    "environment": [],
-    "command_sets": {},
-    "pre_install": null,
-    "post_install": null,
-    "pre_deploy": null,
+    "environment": [
+        "ANTHROPIC_API_KEY"
+    ],
+    "command_sets": {
+        "statics": [
+            "npm ci",
+            "venv/bin/invoke web.build-statics"
+        ],
+        "migration": [
+            "venv/bin/python manage.py migrate"
+        ],
+        "install": [
+            "venv/bin/python manage.py createsuperuser",
+            "venv/bin/python manage.py loaddata initial_puzzles"
+        ]
+    },
+    "pre_install": "statics",
+    "post_install": [
+        "migration",
+        "install"
+    ],
+    "pre_deploy": "statics",
     "post_deploy": null
 }
