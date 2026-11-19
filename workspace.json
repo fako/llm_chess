@@ -1,0 +1,28 @@
+{
+    "name": "LLM Chess",
+    "module": "llm_chess",
+    "repository": "git@github.com:fako/llm_chess.git",
+    "branch": null,
+    "runtimes": {
+        "web": {
+            "type": "django",
+            "module": "web",
+            "primary": true,
+            "expose": null,
+            "configuration": {}
+        },
+        "worker": {
+            "type": "celery",
+            "module": "web",
+            "primary": false,
+            "expose": null,
+            "configuration": {}
+        }
+    },
+    "environment": [],
+    "command_sets": {},
+    "pre_install": null,
+    "post_install": null,
+    "pre_deploy": null,
+    "post_deploy": null
+}
