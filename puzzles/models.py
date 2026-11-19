@@ -9,6 +9,26 @@ class Perspective(models.TextChoices):
     BLACK = "black", "Black"
 
 
+class Goal(models.TextChoices):
+    MATE = "mate", "Forced mate"
+    PIN = "pin", "Pin a piece"
+
+
+class LLM(models.TextChoices):
+    OPUS_5 = "claude-opus-5", "Claude Opus 5"
+    OPUS_5_5 = "claude-opus-5-5", "Claude Opus 5.5"
+    SONNET_5 = "claude-sonnet-5", "Claude Sonnet 5"
+    FABLE_5_1 = "claude-fable-5-1", "Claude Fable 5.1"
+
+
+class Effort(models.TextChoices):
+    LOW = "low", "Low"
+    MEDIUM = "medium", "Medium"
+    HIGH = "high", "High"
+    XHIGH = "xhigh", "Extra high"
+    MAX = "max", "Max"
+
+
 class ChessPuzzleCategory(models.Model):
     """
     A kind of puzzle like "mate in 2". The prompt is what an LLM gets to generate puzzles in this category.
@@ -19,10 +39,16 @@ class ChessPuzzleCategory(models.Model):
     prompt = models.TextField(
         help_text="Jinja2 template sent to the LLM. Available variables: count, mate_in."
     )
+    goal = models.CharField(max_length=10, choices=Goal.choices, default=Goal.MATE,
+                            help_text="Decides how the solver verifies puzzles in this category.")
     mate_in = models.PositiveSmallIntegerField(
         null=True, blank=True,
-        help_text="Puzzles in this category are verified to force mate in exactly this many moves."
+        help_text="For forced mates: puzzles are verified to force mate in exactly this many moves."
     )
+    model = models.CharField(max_length=50, choices=LLM.choices, default=LLM.OPUS_5,
+                             help_text="The LLM that generates puzzles, unless the generate command overrides it.")
+    effort = models.CharField(max_length=10, choices=Effort.choices, default=Effort.LOW,
+                              help_text="How much the LLM thinks per request. More effort costs more tokens.")
     is_active = models.BooleanField(default=True)
     order = models.PositiveSmallIntegerField(default=0)
 
@@ -32,6 +58,19 @@ class ChessPuzzleCategory(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def depth(self) -> int:
+        """
+        The amount of moves the solving side makes to solve a puzzle.
+        """
+        return self.mate_in if self.goal == Goal.MATE and self.mate_in else 1
+
+    @property
+    def task(self) -> str:
+        if self.goal == Goal.PIN:
+            return "pin a piece"
+        return f"mate in {self.depth}"
 
 
 class ChessPuzzle(models.Model):
@@ -43,6 +82,10 @@ class ChessPuzzle(models.Model):
     branches = models.JSONField(default=list, help_text="Every line of opponent replies the user can complete.")
     title = models.CharField(max_length=255, blank=True)
     hint = models.CharField(max_length=255, blank=True)
+    model = models.CharField(max_length=50, choices=LLM.choices, blank=True,
+                             help_text="The LLM that was asked to generate this puzzle.")
+    effort = models.CharField(max_length=10, choices=Effort.choices, blank=True,
+                              help_text="The effort the LLM was asked to put into generating this puzzle.")
     generation = models.JSONField(default=dict, blank=True, help_text="LLM proposal and metadata of the generation.")
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, through="UserChessPuzzle", related_name="chess_puzzles")
     created_at = models.DateTimeField(auto_now_add=True)

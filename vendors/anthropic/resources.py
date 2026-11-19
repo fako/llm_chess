@@ -33,14 +33,32 @@ register_defaults("anthropic", {
 })
 
 
-ANTHROPIC_DEFAULT_TAG = Tag(category="llm", value="anthropic/default")
 ANTHROPIC_OPTIONS = [("max_tokens", int,), ("effort", str,)]
-ANTHROPIC_DEFAULT_MODEL = LLMModel(
-    identifier="claude-opus-5", vendor=LLMVendors.ANTHROPIC,
-    max_inputs=1_000_000, max_outputs=128_000,
-    costs=LLMCosts(input_tokens=5.00, output_tokens=25.00, cache_tokens=0.50),  # dollars per million tokens
-    options=ANTHROPIC_OPTIONS,
-)
+ANTHROPIC_EFFORTS = ("low", "medium", "high", "xhigh", "max")
+# Models that support adaptive thinking and effort, which this resource always sends.
+# Costs are in dollars per million tokens.
+ANTHROPIC_MODELS = {
+    "claude-opus-5": LLMCosts(input_tokens=5.00, output_tokens=25.00, cache_tokens=0.50),
+    "claude-opus-5-5": LLMCosts(input_tokens=4.00, output_tokens=20.00, cache_tokens=0.20),
+    "claude-sonnet-5": LLMCosts(input_tokens=2.00, output_tokens=10.00, cache_tokens=0.20),
+    "claude-fable-5-1": LLMCosts(input_tokens=10.00, output_tokens=50.00, cache_tokens=0.25),
+}
+
+
+def anthropic_llm_tag(identifier: str) -> Tag:
+    return Tag(category="llm", value=f"anthropic/{identifier}")
+
+
+for model_identifier, model_costs in ANTHROPIC_MODELS.items():
+    DATAGROWTH_REGISTRY.register_llm(anthropic_llm_tag(model_identifier), LLMModel(
+        identifier=model_identifier, vendor=LLMVendors.ANTHROPIC,
+        max_inputs=1_000_000, max_outputs=128_000,
+        costs=model_costs,
+        options=ANTHROPIC_OPTIONS,
+    ))
+
+ANTHROPIC_DEFAULT_TAG = Tag(category="llm", value="anthropic/default")
+ANTHROPIC_DEFAULT_MODEL = DATAGROWTH_REGISTRY.get_llm(anthropic_llm_tag("claude-opus-5"))
 DATAGROWTH_REGISTRY.register_llm(ANTHROPIC_DEFAULT_TAG, ANTHROPIC_DEFAULT_MODEL)
 
 

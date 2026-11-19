@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
 from puzzles.generation import generate_puzzles
-from puzzles.models import ChessPuzzleCategory
+from puzzles.models import ChessPuzzleCategory, Effort, LLM
 
 
 class Command(BaseCommand):
@@ -14,8 +14,10 @@ class Command(BaseCommand):
                             help="Maximum amount of LLM requests, defaults to max(3, count)")
         parser.add_argument("--batch-size", type=int, default=None,
                             help="Puzzles to ask for per request, defaults to twice the amount still needed")
-        parser.add_argument("--effort", default="low", choices=["low", "medium", "high", "xhigh", "max"],
-                            help="How much the LLM thinks per request, more effort costs more tokens")
+        parser.add_argument("--model", default=None, choices=LLM.values,
+                            help="The LLM that generates puzzles, defaults to the model of the category")
+        parser.add_argument("--effort", default=None, choices=Effort.values,
+                            help="How much the LLM thinks per request, defaults to the effort of the category")
 
     def handle(self, *args, **options):
         try:
@@ -25,7 +27,9 @@ class Command(BaseCommand):
             raise CommandError(f"Unknown category '{options['category']}'. Available: {slugs}")
 
         report = generate_puzzles(category, options["count"], max_requests=options["max_requests"],
-                                  batch_size=options["batch_size"], effort=options["effort"])
+                                  model=options["model"], effort=options["effort"],
+                                  batch_size=options["batch_size"])
+        self.stdout.write(f"generated with {report.model} at {report.effort} effort")
 
         for puzzle in report.created:
             self.stdout.write(self.style.SUCCESS(

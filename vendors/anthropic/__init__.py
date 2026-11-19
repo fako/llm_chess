@@ -4,7 +4,7 @@ from datagrowth.registry import Tag
 import datagrowth.resources.storage.file_system  # noqa: F401 registers the file_system storage
 from vendors.anthropic.resources import (
     AnthropicPromptResource as AnthropicPromptResourceNoStorage, PromptInputsValidator, ANTHROPIC_DEFAULT_TAG,
-    ANTHROPIC_DEFAULT_MODEL
+    ANTHROPIC_DEFAULT_MODEL, ANTHROPIC_EFFORTS, ANTHROPIC_MODELS, anthropic_llm_tag
 )
 
 __all__ = [
@@ -12,6 +12,9 @@ __all__ = [
     "PromptInputsValidator",
     "ANTHROPIC_DEFAULT_TAG",
     "ANTHROPIC_DEFAULT_MODEL",
+    "ANTHROPIC_EFFORTS",
+    "ANTHROPIC_MODELS",
+    "anthropic_llm_tag",
 ]
 
 

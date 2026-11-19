@@ -13,7 +13,7 @@ from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
 MESSAGES = {
     engine.Outcome.WRONG: "That's not it. Look again.",
     engine.Outcome.CORRECT: None,
-    engine.Outcome.MATE: None,
+    engine.Outcome.SOLVED: None,
     engine.Outcome.ILLEGAL: "That move isn't possible right now.",
 }
 

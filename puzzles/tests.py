@@ -47,11 +47,11 @@ class TestSolver(TestCase):
         self.assertEqual(list(tree["moves"]), ["a5b6"])
         key = tree["moves"]["a5b6"]
         self.assertEqual(key["san"], "Kb6")
-        self.assertFalse(key["mate"])
+        self.assertFalse(key["end"])
         self.assertEqual(set(key["replies"]), {"b8a8", "b8c8"})
         self.assertEqual(set(key["replies"]["b8a8"]["moves"]), {"e5e8", "d3d8"})
         self.assertEqual(set(key["replies"]["b8c8"]["moves"]), {"e5e8"})
-        self.assertTrue(key["replies"]["b8c8"]["moves"]["e5e8"]["mate"])
+        self.assertTrue(key["replies"]["b8c8"]["moves"]["e5e8"]["end"])
         self.assertEqual(list_branches(tree), ["b8a8", "b8c8"])
 
 
@@ -92,11 +92,14 @@ class FakeResource:
     signature = None
     result = None
 
+    requests = []
+
     def __init__(self, llm=None):
-        pass
+        self.llm = llm
 
     def extract(self, *args, **kwargs):
         self.context = kwargs["context"]
+        FakeResource.requests.append((self.llm.value, kwargs["options"]["effort"]))
         return self
 
     def close(self):
@@ -122,7 +125,22 @@ class TestGeneratePuzzles(TestCase):
         self.assertEqual([rejection.reason for rejection in report.rejected], ["there is already a mate in 1"])
         self.assertEqual(report.tokens["total"], 30)
         self.assertEqual(ChessPuzzle.objects.count(), 2)
-        self.assertEqual(ChessPuzzle.objects.get(fen=CHECKING_KEY).generation["model"], "claude-opus-5")
+        puzzle = ChessPuzzle.objects.get(fen=CHECKING_KEY)
+        self.assertEqual(puzzle.generation["served_by"], "claude-opus-5")
+        self.assertEqual((puzzle.model, puzzle.effort), ("claude-opus-5", "low"))
+
+    @patch("puzzles.generation.AnthropicPromptResource", FakeResource)
+    def test_model_and_effort(self):
+        FakeResource.requests = []
+        report = generate_puzzles("mate-in-3", 1, max_requests=1)
+        self.assertEqual((report.model, report.effort), ("claude-opus-5", "high"), "category defaults")
+        generate_puzzles("mate-in-2", 1, model="claude-sonnet-5", effort="medium")
+        self.assertEqual(FakeResource.requests, [
+            ("anthropic/claude-opus-5", "high"),
+            ("anthropic/claude-sonnet-5", "medium"),
+        ])
+        puzzle = ChessPuzzle.objects.get(category__slug="mate-in-2")
+        self.assertEqual((puzzle.model, puzzle.effort), ("claude-sonnet-5", "medium"), "command overrides")
 
     @patch("puzzles.generation.AnthropicPromptResource", FakeResource)
     def test_stops_at_max_requests(self):
@@ -164,7 +182,7 @@ class TestEngine(EngineTestCase):
         state = engine.get_state(progress)
         self.assertEqual(state.phase, engine.Phase.MOVE)
         self.assertEqual(state.moves_left, 1)
-        self.assertEqual(engine.play_move(progress, "d3d8"), engine.Outcome.MATE, "any mating move is accepted")
+        self.assertEqual(engine.play_move(progress, "d3d8"), engine.Outcome.SOLVED, "any mating move is accepted")
         state = engine.get_state(progress)
         self.assertEqual(state.phase, engine.Phase.SOLVED)
         self.assertEqual(state.branch, "b8a8")
@@ -177,7 +195,7 @@ class TestEngine(EngineTestCase):
         self.assertEqual([(reply.san, reply.is_completed) for reply in state.replies], [("Kc8", False), ("Ka8", True)])
         engine.choose_reply(progress, "b8c8")
         self.assertEqual(engine.play_move(progress, "d3d8"), engine.Outcome.WRONG, "Rd8+ doesn't mate against Kc8")
-        self.assertEqual(engine.play_move(progress, "e5e8"), engine.Outcome.MATE)
+        self.assertEqual(engine.play_move(progress, "e5e8"), engine.Outcome.SOLVED)
         self.assertTrue(progress.is_fully_solved)
         self.assertEqual(progress.wrong_moves, 2)
 
@@ -287,3 +305,68 @@ class TestViews(EngineTestCase):
         UserChessPuzzle.objects.filter(puzzle=self.puzzle).update(completed_branches=["b8a8", "b8c8"])
         response = self.client.get("/categories/mate-in-2/")
         self.assertContains(response, "All done")
+
+
+MATE_IN_THREE = "r1b1kb1r/pppp1ppp/5q2/4n3/3KP3/2N3PN/PPP4P/R1BQ1B1R b kq - 0 1"
+BISHOP_PIN = "4k3/8/2n5/8/8/8/8/3BK3 w - - 0 1"
+UNSAFE_PIN = "4k3/8/2n5/1p6/8/8/8/3BK3 w - - 0 1"
+
+
+class TestOtherCategories(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user("solver", password="secret-password")
+
+    def solve(self, puzzle, line):
+        progress = engine.get_progress(self.user, puzzle)
+        outcome = None
+        for index, uci in enumerate(line):
+            if index % 2:
+                self.assertTrue(engine.choose_reply(progress, uci))
+            else:
+                outcome = engine.play_move(progress, uci)
+        return progress, outcome
+
+    def test_mate_in_one(self):
+        category = ChessPuzzleCategory.objects.get(slug="mate-in-1")
+        puzzle = verify_proposal(category, proposal(MATE_IN_ONE, solution=[["Rd8#"]]))
+        self.assertIsInstance(puzzle, ChessPuzzle)
+        self.assertEqual(puzzle.branches, [""], "a single move puzzle has one empty branch")
+        puzzle.save()
+        progress, outcome = self.solve(puzzle, ["d1d8"])
+        self.assertEqual(outcome, engine.Outcome.SOLVED)
+        self.assertTrue(progress.is_fully_solved)
+        self.assertIsNone(engine.next_puzzle(self.user, category))
+        self.assertEqual(verify_proposal(category, proposal(QUIET_KEY)).reason, "there is no forced mate in 1")
+
+    def test_mate_in_three(self):
+        category = ChessPuzzleCategory.objects.get(slug="mate-in-3")
+        self.assertIn("mate in 2", verify_proposal(category, proposal(QUIET_KEY)).reason)
+        puzzle = verify_proposal(category, proposal(MATE_IN_THREE, "black", [["Qf2+"]]))
+        self.assertIsInstance(puzzle, ChessPuzzle)
+        self.assertGreater(len(puzzle.branches), 1)
+        puzzle.save()
+        progress = engine.get_progress(self.user, puzzle)
+        key = next(iter(puzzle.solution["moves"]))
+        self.assertEqual(engine.play_move(progress, key), engine.Outcome.CORRECT)
+        self.assertEqual(engine.get_state(progress).moves_left, 2)
+
+    def test_pin(self):
+        category = ChessPuzzleCategory.objects.get(slug="pin-a-piece")
+        self.assertEqual(category.depth, 1)
+        self.assertEqual(verify_proposal(category, proposal(UNSAFE_PIN)).reason, "no move creates a safe pin")
+        self.assertEqual(verify_proposal(category, proposal(MATE_IN_ONE)).reason, "there is a mate in 1")
+        puzzle = verify_proposal(category, proposal(BISHOP_PIN, solution=[["Ba4"]]))
+        self.assertIsInstance(puzzle, ChessPuzzle)
+        self.assertTrue(puzzle.generation["llm_was_right"])
+        puzzle.save()
+        progress, outcome = self.solve(puzzle, ["d1b3"])
+        self.assertEqual(outcome, engine.Outcome.WRONG)
+        progress, outcome = self.solve(puzzle, ["d1a4"])
+        self.assertEqual(outcome, engine.Outcome.SOLVED)
+        self.assertEqual(engine.get_state(progress).final_move["pin"]["pinned"], "c6")
+
+        self.client.force_login(self.user)
+        response = self.client.get(f"/puzzles/{puzzle.pk}/")
+        self.assertContains(response, "Pinned!")
+        self.assertContains(response, "The knight on c6 is pinned to the king on e8.")

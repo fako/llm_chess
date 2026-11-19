@@ -14,7 +14,7 @@ must be consistent with the position.
 
 A chess engine checks every puzzle afterwards and rejects unsound ones, so there is no need to verify every
 defence yourself. Spend your effort on placing the pieces correctly in the FEN: most rejected puzzles have a
-piece on the wrong square, an extra piece that spoils the mate, or a second first move that also mates.
+piece on the wrong square, an extra piece that spoils the idea, or a second first move that also works.
 Prefer puzzles you are confident about over ambitious ones.
 {% if excluded_positions %}
 

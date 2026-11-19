@@ -26,7 +26,7 @@ class Phase(Enum):
 
 class Outcome(Enum):
     CORRECT = "correct"
-    MATE = "mate"
+    SOLVED = "solved"
     WRONG = "wrong"
     ILLEGAL = "illegal"
 
@@ -55,8 +55,19 @@ class PuzzleState:
 
     @property
     def moves_left(self) -> int:
-        mate_in = self.puzzle.category.mate_in or 0
-        return mate_in - (len(self.progress.line) + 1) // 2
+        return self.puzzle.category.depth - (len(self.progress.line) + 1) // 2
+
+    @property
+    def final_move(self) -> dict | None:
+        """
+        The tree node of the move that solved the puzzle, which describes a pin for pin puzzles.
+        """
+        if self.phase != Phase.SOLVED:
+            return None
+        node = self.puzzle.solution
+        for index, uci in enumerate(self.progress.line):
+            node = node["moves"][uci] if index % 2 == 0 else node["replies"][uci]
+        return node
 
 
 def _walk(puzzle: ChessPuzzle, line: list[str]) -> tuple[chess.Board, dict, Phase, chess.Move | None]:
@@ -73,7 +84,7 @@ def _walk(puzzle: ChessPuzzle, line: list[str]) -> tuple[chess.Board, dict, Phas
             raise KeyError(uci)
         if index % 2 == 0:
             node = node["moves"][uci]
-            phase = Phase.SOLVED if node["mate"] else Phase.REPLY
+            phase = Phase.SOLVED if node["end"] else Phase.REPLY
         else:
             node = node["replies"][uci]
             phase = Phase.MOVE
@@ -142,14 +153,14 @@ def play_move(progress: UserChessPuzzle, uci: str) -> Outcome:
         return Outcome.WRONG
     progress.line = progress.line + [uci]
     progress.hint_level = 0
-    if not node["moves"][uci]["mate"]:
+    if not node["moves"][uci]["end"]:
         progress.save(update_fields=["line", "hint_level", "updated_at"])
         return Outcome.CORRECT
     branch = _branch_prefix(progress.line)
     if branch not in progress.completed_branches:
         progress.completed_branches = progress.completed_branches + [branch]
     progress.save(update_fields=["line", "hint_level", "completed_branches", "updated_at"])
-    return Outcome.MATE
+    return Outcome.SOLVED
 
 
 def choose_reply(progress: UserChessPuzzle, uci: str) -> bool:

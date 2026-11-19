@@ -16,11 +16,11 @@ from jinja2.sandbox import SandboxedEnvironment
 from pydantic import BaseModel, ConfigDict, Field
 
 from datagrowth.exceptions import DGHttpError40X, DGHttpError50X
-from datagrowth.registry import Tag
-from vendors.anthropic import AnthropicPromptResource
+from vendors.anthropic import AnthropicPromptResource, anthropic_llm_tag
 
-from puzzles.models import ChessPuzzle, ChessPuzzleCategory, Perspective
-from puzzles.solver import analyse_mate_puzzle, build_solution_tree, list_branches
+from puzzles.models import ChessPuzzle, ChessPuzzleCategory, Goal, Perspective
+from puzzles.solver import (PuzzleAnalysis, analyse_mate_puzzle, analyse_pin_puzzle, build_pin_tree,
+                            build_solution_tree, list_branches)
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +60,8 @@ class Rejection:
 class GenerationReport:
     category: ChessPuzzleCategory
     requested: int
+    model: str
+    effort: str
     created: list[ChessPuzzle] = field(default_factory=list)
     rejected: list[Rejection] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
@@ -88,12 +90,24 @@ def render_category_prompt(category: ChessPuzzleCategory, count: int) -> str:
     return template.render(count=count, mate_in=category.mate_in)
 
 
+def analyse_puzzle(category: ChessPuzzleCategory, board: chess.Board) -> PuzzleAnalysis:
+    if category.goal == Goal.PIN:
+        return analyse_pin_puzzle(board)
+    return analyse_mate_puzzle(board, category.mate_in)
+
+
+def build_tree(category: ChessPuzzleCategory, board: chess.Board) -> dict:
+    if category.goal == Goal.PIN:
+        return build_pin_tree(board)
+    return build_solution_tree(board, category.mate_in)
+
+
 def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> ChessPuzzle | Rejection:
     """
     Turns a proposal into an unsaved ChessPuzzle when the solver confirms it, or explains why it got rejected.
     """
-    if category.mate_in is None:
-        raise NotImplementedError(f"Category '{category.slug}' has no verification yet, only forced mates are supported")
+    if category.goal == Goal.MATE and category.mate_in is None:
+        raise ValueError(f"Category '{category.slug}' is a forced mate without a mate_in value")
     try:
         board = chess.Board(proposal.fen)
     except ValueError as error:
@@ -104,7 +118,7 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
     position = position_key(board)
     if ChessPuzzle.objects.filter(position=position).exists():
         return Rejection(proposal.fen, "position already exists")
-    analysis = analyse_mate_puzzle(board, category.mate_in)
+    analysis = analyse_puzzle(category, board)
     if not analysis.is_sound:
         return Rejection(proposal.fen, analysis.reason)
 
@@ -116,7 +130,7 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
         except ValueError:
             pass
     llm_was_right = llm_key in analysis.key_moves
-    tree = build_solution_tree(board, category.mate_in)
+    tree = build_tree(category, board)
     return ChessPuzzle(
         category=category,
         fen=board.fen(),
@@ -134,17 +148,20 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
 
 
 def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_requests: int | None = None,
-                     llm: Tag | None = None, batch_size: int | None = None,
-                     effort: str = "low") -> GenerationReport:
+                     model: str | None = None, effort: str | None = None,
+                     batch_size: int | None = None) -> GenerationReport:
     """
     Generates count puzzles for a category, by asking the LLM for batches of proposals until enough of them are
     verified or max_requests is reached. Most LLM proposals don't survive verification, so batches are oversized.
+    The model and effort default to those of the category.
     """
     if isinstance(category, str):
         category = ChessPuzzleCategory.objects.get(slug=category)
     if max_requests is None:
         max_requests = max(3, count)
-    report = GenerationReport(category=category, requested=count)
+    model = model or category.model
+    effort = effort or category.effort
+    report = GenerationReport(category=category, requested=count, model=model, effort=effort)
 
     while len(report.created) < count and report.requests < max_requests:
         size = batch_size or min(MAX_BATCH_SIZE, max(3, (count - len(report.created)) * 2))
@@ -160,7 +177,7 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
             "nonce": uuid4().hex,  # every request is a new request, instead of a cached earlier response
         }
         report.requests += 1
-        resource = AnthropicPromptResource(llm=llm)
+        resource = AnthropicPromptResource(llm=anthropic_llm_tag(model))
         try:
             resource = resource.extract(GENERATION_TEMPLATE, PuzzleProposals, context=context,
                                         options={"max_tokens": 32_000, "effort": effort})
@@ -187,7 +204,9 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
             if isinstance(result, Rejection):
                 report.rejected.append(result)
                 continue
-            result.generation["model"] = resource.served_by
+            result.model = model
+            result.effort = effort
+            result.generation["served_by"] = resource.served_by  # differs from model after a fallback
             result.generation["resource"] = str(resource.signature.hash) if resource.signature else None
             result.save()
             report.created.append(result)

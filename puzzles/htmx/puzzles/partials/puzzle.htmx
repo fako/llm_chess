@@ -12,7 +12,7 @@
       <p class="text-sm text-muted">
         <span class="mr-1 inline-block h-3 w-3 rounded-full border border-ink/40 align-[-1px]
                      {{ 'bg-white' if puzzle.perspective == 'white' else 'bg-ink' }}"></span>
-        {{ puzzle.perspective|capitalize }} to play and mate in {{ category.mate_in }}
+        {{ puzzle.perspective|capitalize }} to play and {{ category.task }}
       </p>
     </div>
     <div class="shrink-0 text-right text-xs text-muted">
@@ -46,7 +46,8 @@
   {% if state.phase.value == 'move' %}
     <div class="card space-y-3 p-4">
       <p class="text-center">
-        {% if state.moves_left == 1 %}Your move: <strong>mate now.</strong>
+        {% if category.goal == 'pin' %}Your move: <strong>find the pin.</strong>
+        {% elif state.moves_left == 1 %}Your move: <strong>mate now.</strong>
         {% else %}Your move: {{ state.moves_left }} moves to mate.{% endif %}
         <span class="block text-sm text-muted">Tap a piece, then tap where it goes.</span>
       </p>
@@ -87,11 +88,15 @@
   {% else %}
     {% set open = progress.open_branches|length %}
     <div class="card space-y-3 p-5 text-center">
-      <h2 class="font-serif text-2xl text-walnut">Checkmate!</h2>
+      {% set pin = state.final_move.pin if state.final_move else None %}
+      <h2 class="font-serif text-2xl text-walnut">{{ 'Pinned!' if pin else 'Checkmate!' }}</h2>
+      {% if pin %}
+        <p>The {{ pin.pinned_piece }} on {{ pin.pinned }} is pinned to the {{ pin.target_piece }} on {{ pin.target }}.</p>
+      {% endif %}
       <p class="text-muted">
         {% if open %}You found {{ progress.completed_branches|length }} of {{ puzzle.branches|length }} lines.
           {{ open }} other {{ 'defence is' if open == 1 else 'defences are' }} waiting.
-        {% else %}You found every line of this puzzle.{% endif %}
+        {% elif puzzle.branches|length > 1 %}You found every line of this puzzle.{% endif %}
       </p>
       <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary">Next puzzle</a>
