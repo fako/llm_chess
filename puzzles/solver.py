@@ -11,16 +11,12 @@ A solution tree alternates two kinds of nodes:
                  {"san": "Qh7+", "end": false, "replies": {<uci>: <user node + "san">, ...}}
                                                                        every legal defence of the opponent
 
-A branch is the sequence of opponent replies along one line of the tree, joined with "/".
-Completing a branch means solving the puzzle after the opponent defended along exactly that line.
-Puzzles that are solved with a single move, like a mate in 1, have one empty branch.
+When users play a puzzle the opponent defends along one of the longest lines of the tree (see engine.py).
 """
 from dataclasses import dataclass
 
 import chess
 
-
-BRANCH_SEPARATOR = "/"
 
 
 def _mates_in_one(board: chess.Board) -> list[chess.Move]:
@@ -97,20 +93,6 @@ def build_solution_tree(board: chess.Board, depth: int) -> dict:
         moves[move.uci()] = node
     return {"moves": moves}
 
-
-def list_branches(tree: dict, path: tuple[str, ...] = tuple()) -> list[str]:
-    """
-    Lists every branch of a solution tree as a "/" joined sequence of opponent replies.
-    Branches reached through different correct user moves are merged.
-    """
-    branches: set[str] = set()
-    for node in tree["moves"].values():
-        if node["end"]:
-            branches.add(BRANCH_SEPARATOR.join(path))
-            continue
-        for reply, reply_node in node["replies"].items():
-            branches.update(list_branches(reply_node, path + (reply,)))
-    return sorted(branches)
 
 
 @dataclass(frozen=True)

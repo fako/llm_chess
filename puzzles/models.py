@@ -79,7 +79,6 @@ class ChessPuzzle(models.Model):
     position = models.CharField(max_length=100, unique=True, help_text="FEN without move counters, to deduplicate.")
     perspective = models.CharField(max_length=5, choices=Perspective.choices)
     solution = models.JSONField(help_text="Solution tree verified and completed by the solver.")
-    branches = models.JSONField(default=list, help_text="Every line of opponent replies the user can complete.")
     title = models.CharField(max_length=255, blank=True)
     hint = models.CharField(max_length=255, blank=True)
     model = models.CharField(max_length=50, choices=LLM.choices, blank=True,
@@ -107,14 +106,14 @@ class ChessPuzzle(models.Model):
 
 class UserChessPuzzle(models.Model):
     """
-    The progress of a user on a puzzle. Every solve completes one branch of the solution tree.
-    The line of the attempt in progress is stored, so an attempt survives reloads and switching devices.
+    The progress of a user on a puzzle. The line of the attempt in progress is stored,
+    so an attempt survives reloads and switching devices.
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="puzzle_progress")
     puzzle = models.ForeignKey(ChessPuzzle, on_delete=models.CASCADE, related_name="user_progress")
     wrong_moves = models.PositiveIntegerField(default=0)
     hints_used = models.PositiveIntegerField(default=0)
-    completed_branches = models.JSONField(default=list, blank=True)
+    solved_at = models.DateTimeField(null=True, blank=True, help_text="When the user first solved the puzzle.")
     line = models.JSONField(default=list, blank=True, help_text="UCI moves of the attempt in progress.")
     hint_level = models.PositiveSmallIntegerField(default=0, help_text="Hints shown for the current position.")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -128,11 +127,7 @@ class UserChessPuzzle(models.Model):
     def __str__(self) -> str:
         return f"{self.user} on {self.puzzle}"
 
-    @property
-    def open_branches(self) -> list[str]:
-        completed = set(self.completed_branches)
-        return [branch for branch in self.puzzle.branches if branch not in completed]
 
     @property
-    def is_fully_solved(self) -> bool:
-        return not self.open_branches
+    def is_solved(self) -> bool:
+        return self.solved_at is not None

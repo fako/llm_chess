@@ -16,7 +16,6 @@
       </p>
     </div>
     <div class="shrink-0 text-right text-xs text-muted">
-      <div>{{ progress.completed_branches|length }} / {{ puzzle.branches|length }} lines</div>
       <div>{{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints</div>
     </div>
   </div>
@@ -67,44 +66,14 @@
       </div>
     </div>
 
-  {% elif state.phase.value == 'reply' %}
-    <div class="card space-y-3 p-4">
-      <p class="text-center">
-        Good move. How does {{ 'black' if puzzle.perspective == 'white' else 'white' }} defend?
-        <span class="block text-sm text-muted">Pick the reply you want to beat.</span>
-      </p>
-      <div class="grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {% for reply in state.replies %}
-          <button class="btn {{ 'border border-line bg-paper text-muted' if reply.is_completed else 'border border-walnut-light/60 bg-card text-ink hover:border-walnut' }} px-2 py-2.5 font-serif"
-                  hx-post="{{ action_url|replace('ACTION', 'reply') }}" hx-vals='{"move": "{{ reply.uci }}"}'
-                  hx-target="#puzzle" hx-swap="outerHTML"
-                  {% if reply.is_completed %}title="You already found the mate against this reply"{% endif %}>
-            {{ reply.san }}{% if reply.is_completed %}<span class="text-sage" aria-label="solved">&#10003;</span>{% endif %}
-          </button>
-        {% endfor %}
-      </div>
-    </div>
-
   {% else %}
-    {% set open = progress.open_branches|length %}
     <div class="card space-y-3 p-5 text-center">
       {% set pin = state.final_move.pin if state.final_move else None %}
       <h2 class="font-serif text-2xl text-walnut">{{ 'Pinned!' if pin else 'Checkmate!' }}</h2>
       {% if pin %}
         <p>The {{ pin.pinned_piece }} on {{ pin.pinned }} is pinned to the {{ pin.target_piece }} on {{ pin.target }}.</p>
       {% endif %}
-      <p class="text-muted">
-        {% if open %}You found {{ progress.completed_branches|length }} of {{ puzzle.branches|length }} lines.
-          {{ open }} other {{ 'defence is' if open == 1 else 'defences are' }} waiting.
-        {% elif puzzle.branches|length > 1 %}You found every line of this puzzle.{% endif %}
-      </p>
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary">Next puzzle</a>
-        {% if open %}
-          <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
-                  hx-target="#puzzle" hx-swap="outerHTML">Try another defence</button>
-        {% endif %}
-      </div>
+      <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary w-full">Next puzzle</a>
     </div>
   {% endif %}
 </div>

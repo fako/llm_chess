@@ -11,18 +11,14 @@ class ChessPuzzleCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ChessPuzzle)
 class ChessPuzzleAdmin(admin.ModelAdmin):
-    list_display = ("id", "category", "perspective", "fen", "branch_count", "model", "effort", "created_at")
+    list_display = ("id", "category", "perspective", "fen", "model", "effort", "created_at")
     list_filter = ("category", "perspective", "model", "effort")
     search_fields = ("fen", "title")
-    readonly_fields = ("position", "solution", "branches", "generation", "created_at")
-
-    @admin.display(description="branches")
-    def branch_count(self, obj: ChessPuzzle) -> int:
-        return len(obj.branches)
+    readonly_fields = ("position", "solution", "generation", "created_at")
 
 
 @admin.register(UserChessPuzzle)
 class UserChessPuzzleAdmin(admin.ModelAdmin):
-    list_display = ("user", "puzzle", "wrong_moves", "hints_used", "updated_at")
+    list_display = ("user", "puzzle", "solved_at", "wrong_moves", "hints_used", "updated_at")
     list_filter = ("puzzle__category",)
     raw_id_fields = ("user", "puzzle")

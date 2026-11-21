@@ -20,11 +20,10 @@ MESSAGES = {
 
 @login_required
 def home(request: HttpRequest) -> HttpResponse:
-    resolved = UserChessPuzzle.objects.filter(user=request.user).filter(~Q(completed_branches=[])) \
-        .values("puzzle_id")
+    solved = UserChessPuzzle.objects.filter(user=request.user, solved_at__isnull=False).values("puzzle_id")
     categories = ChessPuzzleCategory.objects.filter(is_active=True).annotate(
         total=Count("puzzles"),
-        unsolved=Count("puzzles", filter=~Q(puzzles__id__in=resolved)),
+        unsolved=Count("puzzles", filter=~Q(puzzles__id__in=solved)),
     )
     return render(request, "puzzles/home.htmx", {"categories": categories})
 
@@ -37,7 +36,6 @@ def category(request: HttpRequest, slug: str) -> HttpResponse:
         return redirect("puzzles:puzzle", pk=puzzle.pk)
     return render(request, "puzzles/category.htmx", {
         "category": puzzle_category,
-        "open_progress": engine.puzzles_with_open_branches(request.user, puzzle_category),
         "has_puzzles": puzzle_category.puzzles.exists(),
     })
 
@@ -108,9 +106,6 @@ def puzzle_action(request: HttpRequest, pk: int, action: str) -> HttpResponse:
         message = MESSAGES[outcome]
         if outcome == engine.Outcome.WRONG:
             wrong_move = uci
-    elif action == "reply":
-        if not engine.choose_reply(progress, request.POST.get("move", "")):
-            message = MESSAGES[engine.Outcome.ILLEGAL]
     elif action == "hint":
         engine.take_hint(progress)
     elif action == "restart":

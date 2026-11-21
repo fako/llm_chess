@@ -19,8 +19,7 @@ from datagrowth.exceptions import DGHttpError40X, DGHttpError50X
 from vendors.anthropic import AnthropicPromptResource, anthropic_llm_tag
 
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, Goal, Perspective
-from puzzles.solver import (PuzzleAnalysis, analyse_mate_puzzle, analyse_pin_puzzle, build_pin_tree,
-                            build_solution_tree, list_branches)
+from puzzles.solver import PuzzleAnalysis, analyse_mate_puzzle, analyse_pin_puzzle, build_pin_tree, build_solution_tree
 
 
 logger = logging.getLogger(__name__)
@@ -137,7 +136,6 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
         position=position,
         perspective=proposal.perspective,
         solution=tree,
-        branches=list_branches(tree),
         title=proposal.title[:255],
         hint=proposal.hint[:255] if llm_was_right else "",
         generation={

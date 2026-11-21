@@ -32,9 +32,7 @@ class Command(BaseCommand):
         self.stdout.write(f"generated with {report.model} at {report.effort} effort")
 
         for puzzle in report.created:
-            self.stdout.write(self.style.SUCCESS(
-                f"created #{puzzle.pk} {puzzle.fen} ({len(puzzle.branches)} branches)"
-            ))
+            self.stdout.write(self.style.SUCCESS(f"created #{puzzle.pk} {puzzle.fen}"))
         for rejection in report.rejected:
             self.stdout.write(f"rejected {rejection.fen}: {rejection.reason}")
         for error in report.errors:

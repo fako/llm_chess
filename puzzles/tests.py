@@ -2,12 +2,13 @@ from unittest.mock import patch
 
 import chess
 from django.test import TestCase
+from django.utils import timezone
 
 from accounts.models import User
 from puzzles import engine
 from puzzles.generation import PuzzleProposal, PuzzleProposals, Rejection, generate_puzzles, verify_proposal
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
-from puzzles.solver import analyse_mate_puzzle, build_solution_tree, list_branches
+from puzzles.solver import analyse_mate_puzzle, build_solution_tree
 
 
 # Rc7+ is the key, after which the king has three squares and Ra8 mates every time.
@@ -52,7 +53,6 @@ class TestSolver(TestCase):
         self.assertEqual(set(key["replies"]["b8a8"]["moves"]), {"e5e8", "d3d8"})
         self.assertEqual(set(key["replies"]["b8c8"]["moves"]), {"e5e8"})
         self.assertTrue(key["replies"]["b8c8"]["moves"]["e5e8"]["end"])
-        self.assertEqual(list_branches(tree), ["b8a8", "b8c8"])
 
 
 class TestVerifyProposal(TestCase):
@@ -63,7 +63,7 @@ class TestVerifyProposal(TestCase):
     def test_accepts_sound_proposal(self):
         puzzle = verify_proposal(self.category, proposal(QUIET_KEY))
         self.assertIsInstance(puzzle, ChessPuzzle)
-        self.assertEqual(puzzle.branches, ["b8a8", "b8c8"])
+        self.assertEqual(set(puzzle.solution["moves"]["a5b6"]["replies"]), {"b8a8", "b8c8"})
         self.assertTrue(puzzle.generation["llm_was_right"])
         self.assertEqual(puzzle.hint, "Your king can help.")
 
@@ -159,9 +159,31 @@ class EngineTestCase(TestCase):
         self.puzzle.save()
 
 
+def end(san: str) -> dict:
+    return {"san": san, "end": True}
+
+
+# A made up tree: after the key the opponent has two replies that hold out for two more moves and one that doesn't.
+# After "b" the user may mate right away or take the long way around.
+BRANCHING_TREE = {"moves": {"k": {"san": "K", "end": False, "replies": {
+    "a": {"san": "a", "moves": {"x": {"san": "x", "end": False, "replies": {"r": {"san": "r", "moves": {"m": end("m")}}}}}},
+    "b": {"san": "b", "moves": {"m": end("m"), "y": {"san": "y", "end": False, "replies": {
+        "r": {"san": "r", "moves": {"m": end("m")}},
+    }}}},
+    "c": {"san": "c", "moves": {"z": {"san": "z", "end": False, "replies": {"r": {"san": "r", "moves": {"m": end("m")}}}}}},
+}}}}
+
+
 class TestEngine(EngineTestCase):
 
-    def test_solve_branches(self):
+    def test_longest_replies(self):
+        self.assertEqual(engine.moves_to_solve(BRANCHING_TREE), 3)
+        self.assertEqual(engine.longest_replies(BRANCHING_TREE["moves"]["k"]), ["a", "c"],
+                         "b doesn't count as long, because the user can mate right away")
+        self.assertEqual(engine.moves_to_solve(BRANCHING_TREE["moves"]["k"]["replies"]["b"]), 1)
+
+    @patch("puzzles.engine.random.choice", lambda options: options[-1])
+    def test_solve(self):
         progress = engine.get_progress(self.user, self.puzzle)
         state = engine.get_state(progress)
         self.assertEqual(state.phase, engine.Phase.MOVE)
@@ -172,32 +194,40 @@ class TestEngine(EngineTestCase):
         self.assertEqual(engine.play_move(progress, "a1a2"), engine.Outcome.ILLEGAL)
         self.assertEqual(progress.wrong_moves, 1)
         self.assertEqual(engine.play_move(progress, "a5b6"), engine.Outcome.CORRECT)
-
-        state = engine.get_state(progress)
-        self.assertEqual(state.phase, engine.Phase.REPLY)
-        self.assertEqual([(reply.san, reply.is_completed) for reply in state.replies], [("Ka8", False), ("Kc8", False)])
-        self.assertFalse(engine.choose_reply(progress, "b8b7"))
-        self.assertTrue(engine.choose_reply(progress, "b8a8"))
+        self.assertEqual(progress.line, ["a5b6", "b8c8"], "the opponent replies right away")
 
         state = engine.get_state(progress)
         self.assertEqual(state.phase, engine.Phase.MOVE)
         self.assertEqual(state.moves_left, 1)
-        self.assertEqual(engine.play_move(progress, "d3d8"), engine.Outcome.SOLVED, "any mating move is accepted")
-        state = engine.get_state(progress)
-        self.assertEqual(state.phase, engine.Phase.SOLVED)
-        self.assertEqual(state.branch, "b8a8")
-        self.assertEqual(progress.completed_branches, ["b8a8"])
-        self.assertEqual(progress.open_branches, ["b8c8"])
-
-        engine.restart(progress)
-        engine.play_move(progress, "a5b6")
-        state = engine.get_state(progress)
-        self.assertEqual([(reply.san, reply.is_completed) for reply in state.replies], [("Kc8", False), ("Ka8", True)])
-        engine.choose_reply(progress, "b8c8")
+        self.assertEqual(state.last_move, chess.Move.from_uci("b8c8"))
         self.assertEqual(engine.play_move(progress, "d3d8"), engine.Outcome.WRONG, "Rd8+ doesn't mate against Kc8")
         self.assertEqual(engine.play_move(progress, "e5e8"), engine.Outcome.SOLVED)
-        self.assertTrue(progress.is_fully_solved)
+        state = engine.get_state(progress)
+        self.assertEqual(state.phase, engine.Phase.SOLVED)
+        self.assertEqual(state.moves_left, 0)
+        self.assertTrue(progress.is_solved)
         self.assertEqual(progress.wrong_moves, 2)
+
+        solved_at = progress.solved_at
+        engine.restart(progress)
+        engine.play_move(progress, "a5b6")
+        engine.play_move(progress, "e5e8")
+        self.assertEqual(progress.solved_at, solved_at, "only the first solve counts")
+
+    def test_any_mating_move_is_accepted(self):
+        progress = engine.get_progress(self.user, self.puzzle)
+        progress.line = ["a5b6", "b8a8"]
+        progress.save()
+        self.assertEqual(engine.play_move(progress, "d3d8"), engine.Outcome.SOLVED)
+
+    def test_replies_are_random(self):
+        replies = set()
+        for _ in range(30):
+            progress = engine.get_progress(self.user, self.puzzle)
+            engine.restart(progress)
+            engine.play_move(progress, "a5b6")
+            replies.add(progress.line[1])
+        self.assertEqual(replies, {"b8a8", "b8c8"})
 
     def test_hints(self):
         progress = engine.get_progress(self.user, self.puzzle)
@@ -212,31 +242,30 @@ class TestEngine(EngineTestCase):
 
     def test_line_outside_of_solution_resets(self):
         progress = engine.get_progress(self.user, self.puzzle)
-        progress.line = ["e5e8"]
-        progress.save()
-        state = engine.get_state(progress)
-        self.assertEqual(progress.line, [])
-        self.assertEqual(state.phase, engine.Phase.MOVE)
+        for line in (["e5e8"], ["a5b6"]):  # a wrong move, and a line that waits for a reply
+            progress.line = line
+            progress.save()
+            state = engine.get_state(progress)
+            self.assertEqual(progress.line, [])
+            self.assertEqual(state.phase, engine.Phase.MOVE)
 
     def test_next_puzzle(self):
         other = verify_proposal(self.category, proposal(CHECKING_KEY))
         other.save()
         self.assertIn(engine.next_puzzle(self.user, self.category), [self.puzzle, other])
 
-        # A started puzzle without solved branches comes first
+        # A started puzzle comes first
         progress = engine.get_progress(self.user, other)
         self.assertEqual(engine.next_puzzle(self.user, self.category), other)
 
-        # Once a branch is solved, puzzles without solved branches remain
-        for uci in ["c1c7", "f7f8", "a6a8"]:
-            engine.play_move(progress, uci) if uci != "f7f8" else engine.choose_reply(progress, uci)
-        self.assertEqual(progress.completed_branches, ["f7f8"])
+        # Once solved, unsolved puzzles remain
+        engine.play_move(progress, "c1c7")
+        engine.play_move(progress, "a6a8")
+        self.assertTrue(progress.is_solved)
         self.assertEqual(engine.next_puzzle(self.user, self.category), self.puzzle)
 
-        # Without new puzzles the user picks a puzzle with open branches
-        UserChessPuzzle.objects.create(user=self.user, puzzle=self.puzzle, completed_branches=["b8a8", "b8c8"])
+        UserChessPuzzle.objects.create(user=self.user, puzzle=self.puzzle, solved_at=timezone.now())
         self.assertIsNone(engine.next_puzzle(self.user, self.category))
-        self.assertEqual(engine.puzzles_with_open_branches(self.user, self.category), [progress])
 
 
 class TestViews(EngineTestCase):
@@ -276,16 +305,15 @@ class TestViews(EngineTestCase):
         self.assertContains(response, "square dark occupied wrong")
         self.assertNotContains(response, "<html")
 
-        response = self.client.post(url + "move/", {"move": "a5b6"}, headers=headers)
-        self.assertContains(response, 'data-phase="reply"')
-        self.assertContains(response, "Kc8")
-        response = self.client.post(url + "reply/", {"move": "b8c8"}, headers=headers)
+        with patch("puzzles.engine.random.choice", lambda options: "b8c8"):
+            response = self.client.post(url + "move/", {"move": "a5b6"}, headers=headers)
+        self.assertContains(response, 'data-phase="move"')
         self.assertContains(response, "mate now")
         response = self.client.post(url + "hint/", headers=headers)
         self.assertContains(response, "hint")
         response = self.client.post(url + "move/", {"move": "e5e8"}, headers=headers)
         self.assertContains(response, "Checkmate!")
-        self.assertContains(response, "Try another defence")
+        self.assertContains(response, "Next puzzle")
 
         response = self.client.post(url + "restart/")
         self.assertRedirects(response, url)
@@ -299,10 +327,7 @@ class TestViews(EngineTestCase):
         self.assertContains(response, "Black to play")
 
     def test_category_after_everything_is_solved(self):
-        UserChessPuzzle.objects.create(user=self.user, puzzle=self.puzzle, completed_branches=["b8a8"])
-        response = self.client.get("/categories/mate-in-2/")
-        self.assertContains(response, "1 / 2 lines")
-        UserChessPuzzle.objects.filter(puzzle=self.puzzle).update(completed_branches=["b8a8", "b8c8"])
+        UserChessPuzzle.objects.create(user=self.user, puzzle=self.puzzle, solved_at=timezone.now())
         response = self.client.get("/categories/mate-in-2/")
         self.assertContains(response, "All done")
 
@@ -320,22 +345,18 @@ class TestOtherCategories(TestCase):
     def solve(self, puzzle, line):
         progress = engine.get_progress(self.user, puzzle)
         outcome = None
-        for index, uci in enumerate(line):
-            if index % 2:
-                self.assertTrue(engine.choose_reply(progress, uci))
-            else:
-                outcome = engine.play_move(progress, uci)
+        for uci in line:
+            outcome = engine.play_move(progress, uci)
         return progress, outcome
 
     def test_mate_in_one(self):
         category = ChessPuzzleCategory.objects.get(slug="mate-in-1")
         puzzle = verify_proposal(category, proposal(MATE_IN_ONE, solution=[["Rd8#"]]))
         self.assertIsInstance(puzzle, ChessPuzzle)
-        self.assertEqual(puzzle.branches, [""], "a single move puzzle has one empty branch")
         puzzle.save()
         progress, outcome = self.solve(puzzle, ["d1d8"])
         self.assertEqual(outcome, engine.Outcome.SOLVED)
-        self.assertTrue(progress.is_fully_solved)
+        self.assertTrue(progress.is_solved)
         self.assertIsNone(engine.next_puzzle(self.user, category))
         self.assertEqual(verify_proposal(category, proposal(QUIET_KEY)).reason, "there is no forced mate in 1")
 
@@ -344,12 +365,12 @@ class TestOtherCategories(TestCase):
         self.assertIn("mate in 2", verify_proposal(category, proposal(QUIET_KEY)).reason)
         puzzle = verify_proposal(category, proposal(MATE_IN_THREE, "black", [["Qf2+"]]))
         self.assertIsInstance(puzzle, ChessPuzzle)
-        self.assertGreater(len(puzzle.branches), 1)
         puzzle.save()
         progress = engine.get_progress(self.user, puzzle)
         key = next(iter(puzzle.solution["moves"]))
+        self.assertGreater(len(puzzle.solution["moves"][key]["replies"]), 1)
         self.assertEqual(engine.play_move(progress, key), engine.Outcome.CORRECT)
-        self.assertEqual(engine.get_state(progress).moves_left, 2)
+        self.assertEqual(engine.get_state(progress).moves_left, 2, "the opponent picks a reply that holds out longest")
 
     def test_pin(self):
         category = ChessPuzzleCategory.objects.get(slug="pin-a-piece")
