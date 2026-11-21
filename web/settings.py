@@ -17,12 +17,14 @@ ALLOWED_HOSTS = [
     ".localhost",
     "llm-chess.moko.local",
     "chess.fakoberkers.nl",
+    "chess.leo65.fakoberkers.nl",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://llm-chess.localhost:7000",
     "http://llm-chess.moko.local",
     "http://llm-chess.moko.local:7000",
     "https://chess.fakoberkers.nl",
+    "http://chess.leo65.fakoberkers.nl",
 ]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
