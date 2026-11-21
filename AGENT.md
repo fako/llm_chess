@@ -45,6 +45,22 @@ A hook takes one command set name or a list of names. For example, asset buildin
 
 Adding, removing or renaming a runtime or an exposure changes how the project is set up, and needs your human to run `invoke workspaces.configure` on every installation. Changes to command sets and hooks go out with a normal deploy.
 
+### When a change takes effect
+
+Editing `workspace.json` does not change what runs. The installation keeps its own record of the runtimes, and only `invoke workspaces.configure --workspace-module={{ workspace.module }}` copies the file into that record and restarts what changed. So there are two kinds of change:
+
+* **Needs configure:** anything under `runtimes`, which is adding, removing or renaming a runtime as well as changing any field of one (`type`, `module`, `primary`, `expose` or `configuration`), and changes to `name`, `repository` or `branch`. Until your human runs configure, the hub keeps running the old setup, and making a release is refused, because the production server would get a setup the hub never ran.
+* **Goes out with a deploy:** `command_sets` and the hooks. These are read from the file each time they are used.
+* **Nothing applies it:** `environment` only tells your human which variables to set. When you add one, tell them its name and what its value should be, so they can put it in the `.env` of every installation.
+
+When you make a change that needs configure:
+
+1. Commit `workspace.json` and push it. Configure reads the file as it is on disk, but a release reads the committed one, so leave no uncommitted edits to it behind.
+2. Tell your human exactly what changed and ask them to run `invoke workspaces.configure --workspace-module={{ workspace.module }}`. If the new setup needs new code or dependencies, they should deploy as well.
+3. Check that the project still works on the hub before anyone makes a release.
+
+Configure is safe to run again and again: ports, domains and existing `.env` values are kept, and only runtimes whose configuration changed are restarted. Only removing a runtime, or changing its `type`, is destructive: that runtime is deleted, and a type change creates it again with a new port.
+
 ## How domains resolve
 
 This runtime answers to more than one name, and which one to use depends on where the caller is.
