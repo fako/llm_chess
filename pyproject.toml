@@ -12,13 +12,14 @@ dependencies = [
     "Jinja2==3.1.6",
     "psycopg[binary,pool]==3.2.3",
     "python-dotenv==1.2.2",
-    "requests==2.32.5",
+    "requests==2.34.2",
     "uvicorn[standard]==0.37.0",
     "celery[redis]==5.5.3",
     "pydantic==2.12.5",
     "beautifulsoup4==4.14.2",
     "chess==1.11.2",
     "django-htmx==1.26.0",
+    "social-auth-app-django==8.1.0",
 ]
 
 [tool.setuptools.packages.find]

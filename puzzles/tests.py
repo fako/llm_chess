@@ -279,14 +279,6 @@ class TestViews(EngineTestCase):
         response = self.client.get("/")
         self.assertRedirects(response, "/accounts/login/?next=/")
 
-    def test_signup(self):
-        self.client.logout()
-        response = self.client.post("/accounts/signup/", {
-            "username": "newcomer", "password1": "a-long-passphrase-42", "password2": "a-long-passphrase-42",
-        })
-        self.assertRedirects(response, "/")
-        self.assertIsInstance(User.objects.get(username="newcomer").pk.hex, str)
-
     def test_home_and_category(self):
         response = self.client.get("/")
         self.assertContains(response, "Mate in 2")
@@ -297,23 +289,25 @@ class TestViews(EngineTestCase):
         url = f"/puzzles/{self.puzzle.pk}/"
         response = self.client.get(url)
         self.assertContains(response, 'data-phase="move"')
+        self.assertContains(response, "2 moves remaining · 0 wrong · 0 hints")
+        self.assertNotContains(response, "Your move")
         self.assertContains(response, "piece-white-king")
 
         headers = {"HX-Request": "true"}
         response = self.client.post(url + "move/", {"move": "e5e8"}, headers=headers)
-        self.assertContains(response, "not it")
         self.assertContains(response, "square dark occupied wrong")
         self.assertNotContains(response, "<html")
 
         with patch("puzzles.engine.random.choice", lambda options: "b8c8"):
             response = self.client.post(url + "move/", {"move": "a5b6"}, headers=headers)
         self.assertContains(response, 'data-phase="move"')
-        self.assertContains(response, "mate now")
+        self.assertContains(response, "1 move remaining")
         response = self.client.post(url + "hint/", headers=headers)
         self.assertContains(response, "hint")
         response = self.client.post(url + "move/", {"move": "e5e8"}, headers=headers)
-        self.assertContains(response, "Checkmate!")
+        self.assertContains(response, 'data-phase="solved"')
         self.assertContains(response, "Next puzzle")
+        self.assertNotContains(response, "moves remaining")
 
         response = self.client.post(url + "restart/")
         self.assertRedirects(response, url)
@@ -389,5 +383,5 @@ class TestOtherCategories(TestCase):
 
         self.client.force_login(self.user)
         response = self.client.get(f"/puzzles/{puzzle.pk}/")
-        self.assertContains(response, "Pinned!")
-        self.assertContains(response, "The knight on c6 is pinned to the king on e8.")
+        self.assertContains(response, 'data-phase="solved"')
+        self.assertNotContains(response, "Pinned!")

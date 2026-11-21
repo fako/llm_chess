@@ -1,0 +1,62 @@
+{% extends "base.htmx" %}
+{% block title %}My results · LLM Chess{% endblock %}
+{% block content %}
+  <div class="space-y-5">
+    <div>
+      <h1 class="font-serif text-3xl">My results</h1>
+      <p class="mt-1 text-muted">{{ request.user.get_username() }}</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      {% for value, label in [(solved_count, "puzzles solved"), (clean_count, "without mistakes or hints"),
+                              (wrong_moves, "wrong moves"), (hints, "hints taken")] %}
+        <div class="card p-4">
+          <div class="text-2xl font-semibold text-walnut">{{ value }}</div>
+          <div class="text-xs text-muted">{{ label }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <section class="space-y-3">
+      <h2 class="font-serif text-xl">By category</h2>
+      <ul class="card divide-y divide-line">
+        {% for category in categories %}
+          <li class="flex items-center justify-between gap-4 p-4">
+            <span class="min-w-0 truncate">{{ category.name }}</span>
+            <div class="w-28 shrink-0 text-right">
+              <div class="text-sm font-medium">{{ category.solved }} / {{ category.total }}</div>
+              <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
+                <div class="h-full rounded-full bg-sage"
+                     style="width: {{ ((100 * category.solved / category.total) if category.total else 0)|round|int }}%"></div>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% if recent %}
+      <section class="space-y-3">
+        <h2 class="font-serif text-xl">Recently solved</h2>
+        <ul class="card divide-y divide-line">
+          {% for progress in recent %}
+            <li>
+              <a href="{{ url('puzzles:puzzle', kwargs={'pk': progress.puzzle.pk}) }}"
+                 class="flex items-center justify-between gap-4 p-4 hover:bg-paper">
+                <div class="min-w-0">
+                  <div class="truncate font-medium">{{ progress.puzzle.title or "Puzzle #" ~ progress.puzzle.pk }}</div>
+                  <div class="text-sm text-muted">{{ progress.puzzle.category.name }}</div>
+                </div>
+                <div class="shrink-0 text-right text-xs text-muted">
+                  {{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints
+                </div>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+
+    <a href="{{ url('accounts:password_change') }}" class="btn-secondary w-full">Change password</a>
+  </div>
+{% endblock %}

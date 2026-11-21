@@ -16,7 +16,10 @@
       </p>
     </div>
     <div class="shrink-0 text-right text-xs text-muted">
-      <div>{{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints</div>
+      <div>
+        {%- if state.phase.value == 'move' %}{{ state.moves_left }} {{ 'move' if state.moves_left == 1 else 'moves' }} remaining · {% endif -%}
+        {{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints
+      </div>
     </div>
   </div>
 
@@ -38,42 +41,22 @@
     </div>
   </div>
 
-  {% if message %}
-    <p class="rounded-lg bg-brick/10 px-3 py-2 text-center text-sm font-medium text-brick" role="status">{{ message }}</p>
-  {% endif %}
-
   {% if state.phase.value == 'move' %}
-    <div class="card space-y-3 p-4">
-      <p class="text-center">
-        {% if category.goal == 'pin' %}Your move: <strong>find the pin.</strong>
-        {% elif state.moves_left == 1 %}Your move: <strong>mate now.</strong>
-        {% else %}Your move: {{ state.moves_left }} moves to mate.{% endif %}
-        <span class="block text-sm text-muted">Tap a piece, then tap where it goes.</span>
-      </p>
-      {% if puzzle.hint and progress.hint_level >= 1 and not progress.line %}
-        <p class="rounded-lg bg-sage/15 px-3 py-2 text-center text-sm text-ink">{{ puzzle.hint }}</p>
-      {% endif %}
-      <div class="grid grid-cols-2 gap-2">
-        <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
-                hx-target="#puzzle" hx-swap="outerHTML"
-                {% if progress.hint_level >= 2 %}disabled{% endif %}>
-          {% if progress.hint_level == 0 %}Hint{% elif progress.hint_level == 1 %}Show move{% else %}Shown{% endif %}
-        </button>
-        <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
-                hx-target="#puzzle" hx-swap="outerHTML" {% if not progress.line %}disabled{% endif %}>
-          Start over
-        </button>
-      </div>
+    {% if puzzle.hint and progress.hint_level >= 1 and not progress.line %}
+      <p class="rounded-lg bg-sage/15 px-3 py-2 text-center text-sm text-ink">{{ puzzle.hint }}</p>
+    {% endif %}
+    <div class="grid grid-cols-2 gap-2">
+      <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
+              hx-target="#puzzle" hx-swap="outerHTML"
+              {% if progress.hint_level >= 2 %}disabled{% endif %}>
+        {% if progress.hint_level == 0 %}Hint{% elif progress.hint_level == 1 %}Show move{% else %}Shown{% endif %}
+      </button>
+      <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
+              hx-target="#puzzle" hx-swap="outerHTML" {% if not progress.line %}disabled{% endif %}>
+        Start over
+      </button>
     </div>
-
   {% else %}
-    <div class="card space-y-3 p-5 text-center">
-      {% set pin = state.final_move.pin if state.final_move else None %}
-      <h2 class="font-serif text-2xl text-walnut">{{ 'Pinned!' if pin else 'Checkmate!' }}</h2>
-      {% if pin %}
-        <p>The {{ pin.pinned_piece }} on {{ pin.pinned }} is pinned to the {{ pin.target_piece }} on {{ pin.target }}.</p>
-      {% endif %}
-      <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary w-full">Next puzzle</a>
-    </div>
+    <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary w-full">Next puzzle</a>
   {% endif %}
 </div>

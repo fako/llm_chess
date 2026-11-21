@@ -4,6 +4,7 @@ import chess
 import chess.svg
 from django.apps import apps
 from django.conf import settings
+from django.contrib.messages import get_messages
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import reverse
 from jinja2 import Environment, FileSystemLoader
@@ -45,5 +46,6 @@ def environment(**options):
     env.globals["static"] = staticfiles_storage.url
     env.globals["url"] = reverse
     env.globals["piece_sprite"] = piece_sprite
+    env.globals["get_messages"] = get_messages
     env.globals["piece_id"] = piece_id
     return env

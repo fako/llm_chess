@@ -1,0 +1,14 @@
+{% extends "base.htmx" %}
+{% block title %}Confirm your email · LLM Chess{% endblock %}
+{% block content %}
+  <form method="post" action="{{ action_url }}" class="card space-y-4 p-5">
+    {{ csrf_input }}
+    <input type="hidden" name="{{ confirmation_parameter }}" value="{{ confirmation_value }}">
+    <input type="hidden" name="{{ confirmation_nonce_parameter }}" value="{{ confirmation_nonce }}">
+    <div>
+      <h1 class="font-serif text-3xl">Almost there</h1>
+      <p class="mt-1 text-muted">Confirm your email address to finish creating your account.</p>
+    </div>
+    <button type="submit" class="btn-primary w-full">Confirm and continue</button>
+  </form>
+{% endblock %}

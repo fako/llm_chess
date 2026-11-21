@@ -1,0 +1,11 @@
+{% extends "base.htmx" %}
+{% block title %}Check your email · LLM Chess{% endblock %}
+{% block content %}
+  <div class="card space-y-2 p-5">
+    <h1 class="font-serif text-3xl">Check your email</h1>
+    <p class="text-muted">
+      We sent a link to {% if email %}<strong class="text-ink">{{ email }}</strong>{% else %}your email address{% endif %}.
+      Open it to finish creating your account.
+    </p>
+  </div>
+{% endblock %}

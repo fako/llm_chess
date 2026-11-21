@@ -18,14 +18,41 @@
         LLM Chess
       </a>
       {% if request.user.is_authenticated %}
-        <form method="post" action="{{ url('accounts:logout') }}">
-          {{ csrf_input }}
-          <button class="text-sm text-muted underline-offset-4 hover:text-walnut hover:underline">Log out</button>
-        </form>
+        <details class="menu relative">
+          <summary class="-mr-2 flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-ink
+                          hover:bg-line/50 [&::-webkit-details-marker]:hidden" aria-label="Menu">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </summary>
+          <nav class="card absolute right-0 z-50 mt-2 w-56 overflow-hidden py-1">
+            <p class="truncate border-b border-line px-4 py-2 text-sm text-muted">{{ request.user.get_username() }}</p>
+            <a href="{{ url('puzzles:home') }}" class="block px-4 py-3 hover:bg-paper">More puzzles</a>
+            <a href="{{ url('accounts:profile') }}" class="block px-4 py-3 hover:bg-paper">My results</a>
+            <form method="post" action="{{ url('accounts:logout') }}" class="border-t border-line">
+              {{ csrf_input }}
+              <button class="block w-full px-4 py-3 text-left hover:bg-paper">Sign out</button>
+            </form>
+          </nav>
+        </details>
+        <script>
+          document.addEventListener("click", function (event) {
+            document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+              if (!menu.contains(event.target)) { menu.removeAttribute("open"); }
+            });
+          });
+        </script>
       {% endif %}
     </div>
   </header>
   <main class="mx-auto max-w-xl px-4 pb-10 pt-5">
+    {% set flashes = get_messages(request) %}
+    {% if flashes %}
+      <div class="mb-4 space-y-2">
+        {% for message in flashes %}
+          <p class="rounded-lg {{ 'bg-brick/10 text-brick' if message.level_tag == 'error' else 'bg-sage/15 text-ink' }} px-3 py-2 text-sm">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>

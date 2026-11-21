@@ -10,14 +10,6 @@ from puzzles import engine
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
 
 
-MESSAGES = {
-    engine.Outcome.WRONG: "That's not it. Look again.",
-    engine.Outcome.CORRECT: None,
-    engine.Outcome.SOLVED: None,
-    engine.Outcome.ILLEGAL: "That move isn't possible right now.",
-}
-
-
 @login_required
 def home(request: HttpRequest) -> HttpResponse:
     solved = UserChessPuzzle.objects.filter(user=request.user, solved_at__isnull=False).values("puzzle_id")
@@ -40,8 +32,7 @@ def category(request: HttpRequest, slug: str) -> HttpResponse:
     })
 
 
-def _render_puzzle(request: HttpRequest, progress: UserChessPuzzle, message: str | None = None,
-                   wrong_move: str | None = None) -> HttpResponse:
+def _render_puzzle(request: HttpRequest, progress: UserChessPuzzle, wrong_move: str | None = None) -> HttpResponse:
     state = engine.get_state(progress)
     template = "puzzles/partials/puzzle.htmx" if request.htmx else "puzzles/puzzle.htmx"
     wrong_squares = []
@@ -52,7 +43,6 @@ def _render_puzzle(request: HttpRequest, progress: UserChessPuzzle, message: str
         "state": state,
         "puzzle": progress.puzzle,
         "category": progress.puzzle.category,
-        "message": message,
         "wrong_squares": wrong_squares,
         "squares": _squares(state, wrong_squares),
     })
@@ -98,13 +88,10 @@ def puzzle(request: HttpRequest, pk: int) -> HttpResponse:
 def puzzle_action(request: HttpRequest, pk: int, action: str) -> HttpResponse:
     chess_puzzle = get_object_or_404(ChessPuzzle.objects.select_related("category"), pk=pk)
     progress = engine.get_progress(request.user, chess_puzzle)
-    message = None
     wrong_move = None
     if action == "move":
         uci = request.POST.get("move", "")
-        outcome = engine.play_move(progress, uci)
-        message = MESSAGES[outcome]
-        if outcome == engine.Outcome.WRONG:
+        if engine.play_move(progress, uci) == engine.Outcome.WRONG:
             wrong_move = uci
     elif action == "hint":
         engine.take_hint(progress)
@@ -114,4 +101,4 @@ def puzzle_action(request: HttpRequest, pk: int, action: str) -> HttpResponse:
         return HttpResponse(status=404)
     if not request.htmx:
         return redirect("puzzles:puzzle", pk=pk)
-    return _render_puzzle(request, progress, message=message, wrong_move=wrong_move)
+    return _render_puzzle(request, progress, wrong_move=wrong_move)
