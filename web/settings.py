@@ -6,8 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(Path("/workspaces/secrets/llm_chess/.env"))
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = "django-insecure-local-development-only"
-DEBUG = True
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+DEBUG = os.environ.get("DJANGO_DEBUG", "false").strip().lower() in ("1", "true", "yes", "on")
 ALLOWED_HOSTS = [
     "127.0.0.1",
     # The leading dot matches the domain and every subdomain, which covers both names this runtime
@@ -16,11 +16,13 @@ ALLOWED_HOSTS = [
     # Real domains are added to the runtime's `domains` through management, and belong here too.
     ".localhost",
     "llm-chess.moko.local",
+    "chess.fakoberkers.nl",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://llm-chess.localhost:7000",
     "http://llm-chess.moko.local",
     "http://llm-chess.moko.local:7000",
+    "https://chess.fakoberkers.nl",
 ]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True

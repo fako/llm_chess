@@ -9,7 +9,9 @@
             "module": "web",
             "primary": true,
             "expose": null,
-            "configuration": {}
+            "configuration": {
+                "subdomain": "chess"
+            }
         },
         "worker": {
             "type": "celery",
@@ -20,7 +22,9 @@
         }
     },
     "environment": [
-        "ANTHROPIC_API_KEY"
+        "ANTHROPIC_API_KEY",
+        "DJANGO_DEBUG",
+        "DJANGO_SECRET_KEY"
     ],
     "command_sets": {
         "statics": [
