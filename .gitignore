@@ -31,3 +31,6 @@ data/
 
 # Node exclusions
 node_modules/
+
+.vscode-server/
+.wget-hsts
