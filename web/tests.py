@@ -60,8 +60,8 @@ class TestTranslations(TestCase):
         self.assertContains(response, "Welkom terug")
         self.assertContains(response, 'href="/nl/accounts/signup/"')
         self.assertContains(response, "Gebruikersnaam", msg_prefix="Django translates its own forms")
-        self.assertContains(response, "img/flags/gb.svg")
-        self.assertContains(self.client.get("/en/accounts/login/"), "img/flags/nl.svg")
+        self.assertContains(response, "img/flags/gb.")
+        self.assertContains(self.client.get("/en/accounts/login/"), "img/flags/nl.")
 
     def test_switch_language(self):
         user = User.objects.create_user("solver", password="secret-password")
