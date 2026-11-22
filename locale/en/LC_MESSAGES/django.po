@@ -5,6 +5,12 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "site.name"
+msgstr "Chess puzzles"
+
+msgid "site.description"
+msgstr "Free chess puzzles of many kinds"
+
 msgid "web.menu.label"
 msgstr "Menu"
 
@@ -117,10 +123,10 @@ msgid "accounts.profile.recently_solved"
 msgstr "Recently solved"
 
 msgid "accounts.mail.validation.subject"
-msgstr "Confirm your email address for LLM Chess"
+msgstr "Confirm your email address for Chess puzzles"
 
 msgid "accounts.mail.validation.body"
-msgstr "Welcome to LLM Chess!\n\nOpen this link to confirm your email address and finish signing up:\n\n%(url)s"
+msgstr "Welcome to Chess puzzles!\n\nOpen this link to confirm your email address and finish signing up:\n\n%(url)s"
 
 msgid "puzzles.home.heading"
 msgstr "Choose your puzzles"

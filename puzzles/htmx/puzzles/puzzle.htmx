@@ -1,5 +1,5 @@
 {% extends "base.htmx" %}
-{% block title %}{{ category.name }} · LLM Chess{% endblock %}
+{% block title %}{{ category.name }} · {{ _("site.name") }}{% endblock %}
 {% block scripts %}<script src="{{ static('puzzles/board.js') }}" defer></script>{% endblock %}
 {% block content %}
   {% include "puzzles/partials/puzzle.htmx" %}

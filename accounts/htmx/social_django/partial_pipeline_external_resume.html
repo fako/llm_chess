@@ -1,5 +1,5 @@
 {% extends "base.htmx" %}
-{% block title %}{{ _("accounts.confirm_email.title") }} · LLM Chess{% endblock %}
+{% block title %}{{ _("accounts.confirm_email.title") }} · {{ _("site.name") }}{% endblock %}
 {% block content %}
   <form method="post" action="{{ action_url }}" class="card space-y-4 p-5">
     {{ csrf_input }}

@@ -1,5 +1,5 @@
 {% extends "base.htmx" %}
-{% block title %}{{ _("accounts.login.title") }} · LLM Chess{% endblock %}
+{% block title %}{{ _("accounts.login.title") }} · {{ _("site.name") }}{% endblock %}
 {% block content %}
   <div class="space-y-5">
     <div>

@@ -55,6 +55,15 @@ def language_switch() -> dict:
     return {"code": code, "name": name, "flag": staticfiles_storage.url(FLAGS[code])}
 
 
+def absolute_url(request, path: str) -> str:
+    """
+    The full URL of a path, for link previews in other apps. Nginx tells through X-Forwarded-Proto
+    whether the visitor came in over https, which the request alone doesn't know behind the proxy.
+    """
+    scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
+    return f"{scheme}://{request.get_host()}{path}"
+
+
 def environment(**options):
     options["loader"] = HtmxLoader()
     options.setdefault("autoescape", True)
@@ -66,6 +75,7 @@ def environment(**options):
                                   pgettext=translation.pgettext, npgettext=translation.npgettext)
     env.globals["static"] = staticfiles_storage.url
     env.globals["url"] = reverse
+    env.globals["absolute_url"] = absolute_url
     env.globals["piece_sprite"] = piece_sprite
     env.globals["get_messages"] = get_messages
     env.globals["piece_id"] = piece_id

@@ -63,6 +63,16 @@ class TestTranslations(TestCase):
         self.assertContains(response, "img/flags/gb.")
         self.assertContains(self.client.get("/en/accounts/login/"), "img/flags/nl.")
 
+    def test_link_preview(self):
+        response = self.client.get("/nl/accounts/login/", headers={"X-Forwarded-Proto": "https"})
+        self.assertContains(response, '<meta property="og:title" content="Schaakpuzzeltjes">')
+        self.assertContains(response, 'content="Gratis schaakpuzzels van allerlei soorten"')
+        self.assertContains(response, 'content="https://testserver/static/img/promo.')
+        response = self.client.get("/en/accounts/login/")
+        self.assertContains(response, '<meta property="og:title" content="Chess puzzles">')
+        self.assertContains(response, 'content="Free chess puzzles of many kinds"')
+        self.assertContains(response, 'content="http://testserver/en/accounts/login/"')
+
     def test_switch_language(self):
         user = User.objects.create_user("solver", password="secret-password")
         self.client.force_login(user)

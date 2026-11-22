@@ -1,5 +1,5 @@
 {% extends "base.htmx" %}
-{% block title %}{{ category.name }} · LLM Chess{% endblock %}
+{% block title %}{{ category.name }} · {{ _("site.name") }}{% endblock %}
 {% block content %}
   <div class="space-y-5">
     <div>

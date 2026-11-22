@@ -1,5 +1,5 @@
 {% extends "base.htmx" %}
-{% block title %}{{ _("accounts.verify_email.title") }} · LLM Chess{% endblock %}
+{% block title %}{{ _("accounts.verify_email.title") }} · {{ _("site.name") }}{% endblock %}
 {% block content %}
   <div class="card space-y-2 p-5">
     <h1 class="font-serif text-3xl">{{ _("accounts.verify_email.title") }}</h1>

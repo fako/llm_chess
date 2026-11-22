@@ -1,7 +1,7 @@
 {% extends "base.htmx" %}
 {% set username = request.user.get_username() %}
 {% set heading = _("accounts.profile.title", name=username[:1]|upper ~ username[1:]) %}
-{% block title %}{{ heading }} · LLM Chess{% endblock %}
+{% block title %}{{ heading }} · {{ _("site.name") }}{% endblock %}
 {% block content %}
   <div class="space-y-5">
     <div>

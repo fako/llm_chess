@@ -4,7 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#FAF6EE">
-  <title>{% block title %}LLM Chess{% endblock %}</title>
+  <title>{% block title %}{{ _("site.name") }}{% endblock %}</title>
+  <meta name="description" content="{{ _('site.description') }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ _('site.name') }}">
+  <meta property="og:title" content="{{ _('site.name') }}">
+  <meta property="og:description" content="{{ _('site.description') }}">
+  {% if request %}
+  <meta property="og:url" content="{{ absolute_url(request, request.path) }}">
+  <meta property="og:image" content="{{ absolute_url(request, static('img/promo.png')) }}">
+  {% endif %}
+  <meta property="og:image:width" content="1119">
+  <meta property="og:image:height" content="1113">
+  <meta property="og:image:alt" content="{{ _('site.name') }}">
+  <meta property="og:locale" content="{{ 'nl_NL' if get_language() == 'nl' else 'en_GB' }}">
+  <meta name="twitter:card" content="summary">
   <link rel="stylesheet" href="{{ static('css/tailwind.build.css') }}">
   <script src="{{ static('js/htmx.min.js') }}" defer></script>
   {% block scripts %}{% endblock %}
@@ -15,7 +29,7 @@
     <div class="mx-auto flex max-w-xl items-center justify-between gap-4 px-4 py-3">
       <a href="{{ url('puzzles:home') }}" class="flex items-center gap-2 font-serif text-xl text-ink">
         <svg class="h-7 w-7" viewBox="0 0 45 45" aria-hidden="true"><use href="#piece-black-knight"></use></svg>
-        LLM Chess
+        {{ _("site.name") }}
       </a>
       <div class="flex items-center gap-1">
         {% set switch = language_switch() %}

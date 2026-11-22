@@ -5,6 +5,12 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "site.name"
+msgstr "Schaakpuzzeltjes"
+
+msgid "site.description"
+msgstr "Gratis schaakpuzzels van allerlei soorten"
+
 msgid "web.menu.label"
 msgstr "Menu"
 
@@ -117,10 +123,10 @@ msgid "accounts.profile.recently_solved"
 msgstr "Recent opgelost"
 
 msgid "accounts.mail.validation.subject"
-msgstr "Bevestig je e-mailadres voor LLM Chess"
+msgstr "Bevestig je e-mailadres voor Schaakpuzzeltjes"
 
 msgid "accounts.mail.validation.body"
-msgstr "Welkom bij LLM Chess!\n\nOpen deze link om je e-mailadres te bevestigen en je registratie af te ronden:\n\n%(url)s"
+msgstr "Welkom bij Schaakpuzzeltjes!\n\nOpen deze link om je e-mailadres te bevestigen en je registratie af te ronden:\n\n%(url)s"
 
 msgid "puzzles.home.heading"
 msgstr "Kies je puzzels"
