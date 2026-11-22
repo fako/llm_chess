@@ -84,3 +84,11 @@ class TestTranslations(TestCase):
         self.assertContains(response, "Uitloggen")
         response = self.client.get("/", headers={"Accept-Language": "en"})
         self.assertRedirects(response, "/nl/", fetch_redirect_response=False, msg_prefix="the cookie wins")
+
+    def test_switch_language_from_page_in_other_language_than_cookie(self):
+        self.client.cookies[settings.LANGUAGE_COOKIE_NAME] = "en"
+        response = self.client.post("/language/", {"language": "en", "next": "/nl/accounts/login/"})
+        self.assertRedirects(response, "/en/accounts/login/", fetch_redirect_response=False)
+        self.client.cookies[settings.LANGUAGE_COOKIE_NAME] = "nl"
+        response = self.client.post("/language/", {"language": "nl", "next": "/en/accounts/login/"})
+        self.assertRedirects(response, "/nl/accounts/login/", fetch_redirect_response=False)
