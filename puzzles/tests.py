@@ -1,10 +1,13 @@
+from io import StringIO
 from unittest.mock import patch
 
 import chess
+from django.core.management import CommandError, call_command
 from django.test import TestCase
 from django.utils import timezone, translation
 
 from accounts.models import User
+from datagrowth.exceptions import DGHttpError40X
 from puzzles import engine
 from puzzles.generation import PuzzleProposal, PuzzleProposals, Rejection, generate_puzzles, verify_proposal
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
@@ -465,9 +468,10 @@ class TestTags(TestCase):
             ChessPuzzleCategory.objects.get(slug="mate-in-2"), ["only-checks", "two-bishops"]))
         self.assertEqual(FakeResource.contexts[0]["tags"], [TAGS["only-checks"].instruction,
                                                              TAGS["two-bishops"].instruction])
-        self.assertIsNone(FakeResource.contexts[0]["perspective"], "manual tags don't balance sides")
+        self.assertEqual(FakeResource.contexts[0]["perspective"], "white")
         puzzle = report.created[0]
         self.assertEqual(puzzle.generation["requested_tags"], ["only-checks", "two-bishops"])
+        self.assertEqual(puzzle.generation["manual_tags"], ["only-checks", "two-bishops"])
         self.assertEqual(report.matched_tags, {"only-checks": 1, "two-bishops": 0}, "tags are soft constraints")
 
         generate_puzzles("mate-in-2", 1)
@@ -475,3 +479,27 @@ class TestTags(TestCase):
         self.assertEqual(FakeResource.contexts[1]["perspective"], "black", "white has a puzzle already")
         generate_puzzles("mate-in-2", 1, balance=False)
         self.assertEqual((FakeResource.contexts[2]["tags"], FakeResource.contexts[2]["perspective"]), ([], None))
+        few_pieces = parse_tags(ChessPuzzleCategory.objects.get(slug="mate-in-1"), ["few-pieces"])
+        report = generate_puzzles("mate-in-1", 1, tags=few_pieces)
+        requested = report.created[0].generation["requested_tags"]
+        self.assertEqual(len(requested), 2, "the open group gets a balanced tag")
+        self.assertEqual(requested[0], "few-pieces")
+        self.assertNotEqual(TAGS[requested[1]].kind, Kind.MATERIAL)
+
+    @patch("puzzles.generation.AnthropicPromptResource", FakeResource)
+    def test_command_tops_up(self):
+        FakeResource.contexts = []
+        for _ in range(2):
+            call_command("generate_puzzles", "mate-in-2", "1", "--tags", "few-pieces", "--top-up", stdout=StringIO())
+        self.assertEqual(len(FakeResource.contexts), 1, "the second run has its puzzle already")
+        call_command("generate_puzzles", "mate-in-2", "2", "--tags", "few-pieces", "--top-up", stdout=StringIO())
+        self.assertEqual(ChessPuzzle.objects.count(), 2)
+
+    @patch("puzzles.generation.AnthropicPromptResource")
+    def test_command_fails_when_the_api_refuses(self, resource):
+        refused = FakeResource()
+        refused.status = 400
+        refused.result = None
+        resource.return_value.extract.side_effect = DGHttpError40X("out of credits", refused)
+        with self.assertRaisesRegex(CommandError, "refused"):
+            call_command("generate_puzzles", "mate-in-2", "1", stdout=StringIO())

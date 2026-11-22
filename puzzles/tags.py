@@ -538,13 +538,19 @@ def applicable_tags(category: ChessPuzzleCategory) -> list[Tag]:
     return [tag for tag in TAGS.values() if tag.applies_to(category)]
 
 
-def balanced_tags(coverage: Coverage, rng: random.Random = random) -> list[Tag]:
+GROUPS = ({Kind.MATERIAL}, {Kind.IDEA, Kind.MATE, Kind.PIN})  # balancing picks a tag about the board and the solution
+
+
+def balanced_tags(coverage: Coverage, fixed: list[Tag] | None = None, rng: random.Random = random) -> list[Tag]:
     """
-    Picks one tag about the material and one about the solution, preferring tags the category has few puzzles of.
+    Completes the fixed tags with one tag about the material and one about the solution, when the fixed tags have none
+    of that group yet. Tags the category has few puzzles of are much more likely to get picked.
     """
-    picks = []
+    picks = list(fixed or [])
     tags = applicable_tags(coverage.category)
-    for kinds in ({Kind.MATERIAL}, {Kind.IDEA, Kind.MATE, Kind.PIN}):
+    for kinds in GROUPS:
+        if any(tag.kind in kinds for tag in picks):
+            continue
         options = [tag for tag in tags if tag.kind in kinds]
         if options:
             weights = [1 / (1 + coverage.tags[tag.slug]) ** 2 for tag in options]

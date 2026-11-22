@@ -1,14 +1,9 @@
 {{ prompt }}
 {% if tags %}
-
 Every puzzle in this batch must have these features. They take precedence over the guidelines above:
 {% for tag in tags %}- {{ tag }}
 {% endfor %}{% endif %}
-{% if perspective %}
-Let {{ perspective }} be the solving side in every puzzle of this batch.
-{% else %}
-Mix puzzles where white solves with puzzles where black solves.
-{% endif %}
+{% if perspective %}Let {{ perspective }} be the solving side in every puzzle of this batch.{% else %}Mix puzzles where white solves with puzzles where black solves.{% endif %}
 
 Answer with exactly {{ count }} puzzles. For every puzzle give:
 - fen: the position in Forsyth-Edwards Notation, with the solving side to move.

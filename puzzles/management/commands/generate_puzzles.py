@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from puzzles.generation import generate_puzzles
-from puzzles.models import ChessPuzzleCategory, Effort, LLM
+from puzzles.generation import generate_puzzles, manual_tags
+from puzzles.models import ChessPuzzle, ChessPuzzleCategory, Effort, LLM
 from puzzles.tags import applicable_tags, parse_tags
 
 
@@ -20,10 +20,14 @@ class Command(BaseCommand):
         parser.add_argument("--effort", default=None, choices=Effort.values,
                             help="How much the LLM thinks per request, defaults to the effort of the category")
         parser.add_argument("--tags", default="",
-                            help="Comma separated tags every request asks for (see puzzles/tags.py). "
-                                 "Without it every request picks tags the category has few puzzles of")
+                            help="Comma separated tags every request asks for (see puzzles/tags.py). Tags for "
+                                 "the board or the solution that are left open get picked from the tags the "
+                                 "category has few puzzles of")
         parser.add_argument("--no-tags", action="store_true",
-                            help="Don't ask for tags or a solving side, and let the LLM pick freely")
+                            help="Only ask for --tags, without balancing tags or the solving side")
+        parser.add_argument("--top-up", action="store_true",
+                            help="Only generate what is missing to have count puzzles generated with exactly "
+                                 "these --tags, so a run can be repeated after it stopped halfway")
 
     def handle(self, *args, **options):
         try:
@@ -38,7 +42,15 @@ class Command(BaseCommand):
             available = ", ".join(tag.slug for tag in applicable_tags(category))
             raise CommandError(f"{error}. Available for {category.slug}: {available}")
 
-        report = generate_puzzles(category, options["count"], max_requests=options["max_requests"],
+        count = options["count"]
+        if options["top_up"]:
+            existing = ChessPuzzle.objects.filter(category=category,
+                                                  generation__manual_tags=manual_tags(tags)).count()
+            count -= existing
+            if count <= 0:
+                self.stdout.write(f"{category.slug} has {existing} puzzles with tags [{options['tags']}] already")
+                return
+        report = generate_puzzles(category, count, max_requests=options["max_requests"],
                                   model=options["model"], effort=options["effort"],
                                   batch_size=options["batch_size"], tags=tags, balance=not options["no_tags"])
         self.stdout.write(f"generated with {report.model} at {report.effort} effort")
@@ -58,3 +70,5 @@ class Command(BaseCommand):
             f"{len(report.created)}/{report.requested} puzzles created in {report.requests} requests, "
             f"{len(report.rejected)} proposals rejected, tokens: {report.tokens}"
         )
+        if report.fatal:
+            raise CommandError("The API refused the request, see the error above")

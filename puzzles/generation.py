@@ -68,6 +68,7 @@ class GenerationReport:
     created: list[ChessPuzzle] = field(default_factory=list)
     rejected: list[Rejection] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    fatal: bool = False  # the API refused, for instance because credits ran out
     requests: int = 0
     tokens: dict[str, int] = field(default_factory=dict)
     requested_tags: Counter = field(default_factory=Counter)  # per requested tag: proposals verified with it asked
@@ -154,6 +155,13 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
     )
 
 
+def manual_tags(tags: list[Tag] | None) -> list[str]:
+    """
+    How the tags picked by hand are stored on a puzzle, so a run can top up puzzles generated with the same tags.
+    """
+    return sorted(tag.slug for tag in tags or [])
+
+
 def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_requests: int | None = None,
                      model: str | None = None, effort: str | None = None,
                      batch_size: int | None = None, tags: list[Tag] | None = None,
@@ -163,8 +171,9 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
     verified or max_requests is reached. Most LLM proposals don't survive verification, so batches are oversized.
     The model and effort default to those of the category.
 
-    Every request asks for the given tags. Without tags and with balance, every request asks for tags and a solving
-    side that the category has few puzzles of. Tags are soft: puzzles without them are kept with the tags they have.
+    Every request asks for the given tags. With balance every request also gets a solving side and tags that the
+    category has few puzzles of, for the groups of tags (material, solution) that the given tags leave open.
+    Tags are soft: puzzles without them are kept with the tags they do have.
     """
     if isinstance(category, str):
         category = ChessPuzzleCategory.objects.get(slug=category)
@@ -182,8 +191,8 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
             .order_by("-created_at")
             .values_list("fen", flat=True)[:MAX_EXCLUDED_POSITIONS]
         )
-        request_tags = tags if tags else balanced_tags(coverage) if balance else []
-        perspective = balanced_perspective(coverage) if balance and not tags else None
+        request_tags = balanced_tags(coverage, fixed=tags) if balance else list(tags or [])
+        perspective = balanced_perspective(coverage) if balance else None
         context = {
             "prompt": render_category_prompt(category, size),
             "count": size,
@@ -204,6 +213,7 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
         except DGHttpError40X as error:  # retrying won't help with problems like authentication or credits
             report.errors.append(f"request {report.requests} failed: {api_error_message(error.resource)}")
             logger.error(report.errors[-1])
+            report.fatal = True
             break
         resource.close()
         if not resource.success:
@@ -225,6 +235,7 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
             result.generation["served_by"] = resource.served_by  # differs from model after a fallback
             result.generation["resource"] = str(resource.signature.hash) if resource.signature else None
             result.generation["requested_tags"] = [tag.slug for tag in request_tags]
+            result.generation["manual_tags"] = manual_tags(tags)
             result.generation["requested_perspective"] = perspective
             result.save()
             report.created.append(result)
