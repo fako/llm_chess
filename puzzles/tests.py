@@ -312,6 +312,16 @@ class TestViews(EngineTestCase):
         response = self.client.post(url + "restart/")
         self.assertRedirects(response, url)
 
+    def test_previous_and_next_puzzle(self):
+        other = verify_proposal(self.category, proposal(QUIET_KEY_BLACK, "black", [["Kb3"]]))
+        other.save()
+        response = self.client.get(f"/puzzles/{self.puzzle.pk}/")
+        self.assertContains(response, f'href="/puzzles/{other.pk}/"')
+        self.assertContains(response, 'aria-label="Previous puzzle" disabled')
+        response = self.client.get(f"/puzzles/{other.pk}/")
+        self.assertContains(response, f'href="/puzzles/{self.puzzle.pk}/"')
+        self.assertContains(response, 'aria-label="Next puzzle" disabled')
+
     def test_board_orientation_for_black(self):
         puzzle = verify_proposal(self.category, proposal(QUIET_KEY_BLACK, "black", [["Kb3"]]))
         puzzle.save()

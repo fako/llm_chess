@@ -1,4 +1,11 @@
 {% set progress = state.progress %}
+{% macro puzzle_link(target, symbol, label) -%}
+  {% if target %}
+    <a href="{{ url('puzzles:puzzle', kwargs={'pk': target.pk}) }}" class="btn-secondary" aria-label="{{ label }}" title="{{ label }}">{{ symbol }}</a>
+  {% else %}
+    <button type="button" class="btn-secondary" aria-label="{{ label }}" disabled>{{ symbol }}</button>
+  {% endif %}
+{%- endmacro %}
 {% set action_url = url('puzzles:puzzle_action', kwargs={'pk': puzzle.pk, 'action': 'ACTION'}) %}
 <div id="puzzle" class="space-y-4"
      data-phase="{{ state.phase.value }}"
@@ -45,7 +52,8 @@
     {% if puzzle.hint and progress.hint_level >= 1 and not progress.line %}
       <p class="rounded-lg bg-sage/15 px-3 py-2 text-center text-sm text-ink">{{ puzzle.hint }}</p>
     {% endif %}
-    <div class="grid grid-cols-2 gap-2">
+    <div class="grid grid-cols-[auto_1fr_1fr_auto] gap-2">
+      {{ puzzle_link(previous_puzzle, '‹', 'Previous puzzle') }}
       <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
               hx-target="#puzzle" hx-swap="outerHTML"
               {% if progress.hint_level >= 2 %}disabled{% endif %}>
@@ -55,6 +63,7 @@
               hx-target="#puzzle" hx-swap="outerHTML" {% if not progress.line %}disabled{% endif %}>
         Start over
       </button>
+      {{ puzzle_link(next_puzzle, '›', 'Next puzzle') }}
     </div>
   {% else %}
     <a href="{{ url('puzzles:category', kwargs={'slug': category.slug}) }}" class="btn-primary w-full">Next puzzle</a>

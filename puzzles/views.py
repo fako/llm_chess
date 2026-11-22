@@ -39,10 +39,13 @@ def _render_puzzle(request: HttpRequest, progress: UserChessPuzzle, wrong_move: 
     if wrong_move:
         move = chess.Move.from_uci(wrong_move)
         wrong_squares = [chess.square_name(move.from_square), chess.square_name(move.to_square)]
+    previous_puzzle, next_puzzle = engine.adjacent_puzzles(progress.puzzle)
     return render(request, template, {
         "state": state,
         "puzzle": progress.puzzle,
         "category": progress.puzzle.category,
+        "previous_puzzle": previous_puzzle,
+        "next_puzzle": next_puzzle,
         "wrong_squares": wrong_squares,
         "squares": _squares(state, wrong_squares),
     })

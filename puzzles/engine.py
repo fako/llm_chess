@@ -189,6 +189,16 @@ def restart(progress: UserChessPuzzle) -> None:
 #####################
 
 
+def adjacent_puzzles(puzzle: ChessPuzzle) -> tuple[ChessPuzzle | None, ChessPuzzle | None]:
+    """
+    Returns the previous and next puzzle in the category of the given puzzle, in creation order.
+    """
+    siblings = ChessPuzzle.objects.filter(category_id=puzzle.category_id)
+    previous = siblings.filter(pk__lt=puzzle.pk).order_by("-pk").first()
+    following = siblings.filter(pk__gt=puzzle.pk).order_by("pk").first()
+    return previous, following
+
+
 def next_puzzle(user, category: ChessPuzzleCategory) -> ChessPuzzle | None:
     """
     Returns a puzzle the user didn't solve yet, preferring puzzles that the user already started.
