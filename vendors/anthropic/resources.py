@@ -25,7 +25,9 @@ ANTHROPIC_DEFAULTS = {
     "betas": ["server-side-fallback-2026-07-01"],
     "fallbacks": "default",  # re-runs a request on a recommended model server side when a model declines it
     "max_tokens": 16_000,
-    "timeout": 600,  # generations with adaptive thinking easily take longer than the 30 second http default
+    # Generations with adaptive thinking easily take longer than the 30 second http default.
+    # At roughly 100 tokens per second, 64k output tokens take about 11 minutes.
+    "timeout": 1200,
 }
 register_defaults("anthropic", {
     key: value for key, value in ANTHROPIC_DEFAULTS.items()

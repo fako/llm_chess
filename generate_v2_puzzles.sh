@@ -4,11 +4,14 @@
 #
 # Safe to run again: every slot only generates what it is missing, so after running out of credits you can top up
 # and start this script again. Override the requests per puzzle with MAX_REQUESTS=5 ./generate_v2_puzzles.sh
+# Mates in 3 ask for one proposal per request, because composing several of them thinks beyond the output limit.
+# They get MATE_IN_3_MAX_REQUESTS requests instead, which defaults to 5.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 PYTHON=venv/bin/python
 MAX_REQUESTS=${MAX_REQUESTS:-3}
+MATE_IN_3_MAX_REQUESTS=${MATE_IN_3_MAX_REQUESTS:-5}
 FIXTURE=puzzles/fixtures/initial_puzzles.json
 PER_CATEGORY=5
 
@@ -24,10 +27,14 @@ $PYTHON manage.py migrate --no-input
 # Generates puzzles one at a time, so every puzzle gets its own balanced tags for whatever the given tags leave open.
 slot() {
     local category=$1 amount=$2 tags=$3
+    local options=(--max-requests "$MAX_REQUESTS")
+    if [ "$category" = mate-in-3 ]; then
+        options=(--max-requests "$MATE_IN_3_MAX_REQUESTS" --batch-size 1)
+    fi
     for target in $(seq 1 "$amount"); do
         echo
         echo "== $category: puzzle $target of $amount with [$tags]"
-        $PYTHON manage.py generate_puzzles "$category" "$target" --tags "$tags" --top-up --max-requests "$MAX_REQUESTS"
+        $PYTHON manage.py generate_puzzles "$category" "$target" --tags "$tags" --top-up "${options[@]}"
     done
 }
 

@@ -30,6 +30,8 @@ logger = logging.getLogger(__name__)
 GENERATION_TEMPLATE = "puzzles/generate_puzzles.json.tpl"
 MAX_BATCH_SIZE = 5
 MAX_EXCLUDED_POSITIONS = 100
+# Thinking counts towards the output tokens. On high effort mates in 2 and 3 easily think for more than 32k tokens.
+MAX_TOKENS = 64_000
 
 
 class PuzzleProposal(BaseModel):
@@ -205,7 +207,7 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
         resource = AnthropicPromptResource(llm=anthropic_llm_tag(model))
         try:
             resource = resource.extract(GENERATION_TEMPLATE, PuzzleProposals, context=context,
-                                        options={"max_tokens": 32_000, "effort": effort})
+                                        options={"max_tokens": MAX_TOKENS, "effort": effort})
         except DGHttpError50X as error:
             report.errors.append(f"request {report.requests} failed: {api_error_message(error.resource)}")
             logger.warning(report.errors[-1])
