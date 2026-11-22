@@ -11,8 +11,8 @@
             "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in {{ mate_in }}\" puzzles.\n\nIn a mate in {{ mate_in }} the solving side moves first and forces checkmate with its second move, whatever the opponent replies. The first move (the key) must be the only move that forces mate in {{ mate_in }}, and there must be no mate in 1.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total. Fewer pieces make the puzzle cleaner and easier to verify.\n- The best puzzles have a surprising key. Avoid keys that are the most obvious check on the board.",
             "goal": "mate",
             "mate_in": 2,
-            "model": "claude-opus-5",
-            "effort": "low",
+            "model": "claude-opus-5-5",
+            "effort": "high",
             "is_active": true,
             "order": 2
         }
@@ -29,8 +29,8 @@
             "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in 1\" puzzles.\n\nIn a mate in 1 the solving side checkmates with its first move. That move must be the only move that mates.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total.\n- Make the mate a little hidden: avoid positions where several checks look equally natural and one of them simply mates.\n- Make sure no second move mates as well: check every other check, capture and promotion of the solving side.",
             "goal": "mate",
             "mate_in": 1,
-            "model": "claude-opus-5",
-            "effort": "low",
+            "model": "claude-opus-5-5",
+            "effort": "high",
             "is_active": true,
             "order": 1
         }
@@ -47,7 +47,7 @@
             "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in {{ mate_in }}\" puzzles.\n\nIn a mate in {{ mate_in }} the solving side moves first and forces checkmate with its third move, whatever the opponent replies. The first move (the key) must be the only move that forces mate in {{ mate_in }}, and there must be no mate in 1 or mate in 2.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total. Fewer pieces make the puzzle cleaner and easier to verify.\n- Good mates in 3 combine two ideas, for instance a move that opens the king followed by a second blow before the mate.",
             "goal": "mate",
             "mate_in": 3,
-            "model": "claude-opus-5",
+            "model": "claude-opus-5-5",
             "effort": "high",
             "is_active": true,
             "order": 3
@@ -65,8 +65,8 @@
             "prompt": "You are a chess trainer. Compose {{ count }} original \"pin a piece\" puzzles.\n\nIn these puzzles the solving side has exactly one move that pins a piece of the opponent: after the move a bishop, rook or queen of the solving side attacks an opponent piece that can't move away (or shouldn't), because the opponent's king or queen stands behind it on the same line.\n\nRules the puzzle must follow:\n- Exactly one legal move creates a new pin against the king or the queen. Pins that already exist before the move don't count, and no other move may create a pin as well.\n- After the move the pinning piece is safe: the opponent can't capture it, or only with a piece that is worth at least as much while the pinning piece is defended.\n- A pin against the queen only counts when the pinning piece is a bishop or rook.\n- There is no checkmate in 1 for the solving side.\n\nGuidelines:\n- Make the pin worth something: the pinned piece is undefended, attacked a second time, or the pin wins the piece behind it.\n- Keep positions compact and realistic, with 8 to 16 pieces in total, as if taken from a middlegame or endgame.",
             "goal": "pin",
             "mate_in": null,
-            "model": "claude-opus-5",
-            "effort": "low",
+            "model": "claude-opus-5-5",
+            "effort": "high",
             "is_active": true,
             "order": 4
         }

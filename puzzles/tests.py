@@ -140,16 +140,16 @@ class TestGeneratePuzzles(TestCase):
         self.assertEqual(ChessPuzzle.objects.count(), 2)
         puzzle = ChessPuzzle.objects.get(fen=CHECKING_KEY)
         self.assertEqual(puzzle.generation["served_by"], "claude-opus-5")
-        self.assertEqual((puzzle.model, puzzle.effort), ("claude-opus-5", "low"))
+        self.assertEqual((puzzle.model, puzzle.effort), ("claude-opus-5-5", "high"))
 
     @patch("puzzles.generation.AnthropicPromptResource", FakeResource)
     def test_model_and_effort(self):
         FakeResource.requests = []
         report = generate_puzzles("mate-in-3", 1, max_requests=1)
-        self.assertEqual((report.model, report.effort), ("claude-opus-5", "high"), "category defaults")
+        self.assertEqual((report.model, report.effort), ("claude-opus-5-5", "high"), "category defaults")
         generate_puzzles("mate-in-2", 1, model="claude-sonnet-5", effort="medium")
         self.assertEqual(FakeResource.requests, [
-            ("anthropic/claude-opus-5", "high"),
+            ("anthropic/claude-opus-5-5", "high"),
             ("anthropic/claude-sonnet-5", "medium"),
         ])
         puzzle = ChessPuzzle.objects.get(category__slug="mate-in-2")
