@@ -116,7 +116,7 @@ class TestProfile(TestCase):
                                             title="Back rank")
         UserChessPuzzle.objects.create(user=self.user, puzzle=puzzle, solved_at=timezone.now(), wrong_moves=2)
         response = self.client.get("/accounts/profile/")
-        self.assertContains(response, "My results")
+        self.assertContains(response, "Results for Solver")
         self.assertContains(response, "Back rank")
         self.assertContains(response, "1 / 1")
         self.assertContains(response, "Change password")

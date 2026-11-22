@@ -289,7 +289,7 @@ class TestViews(EngineTestCase):
         url = f"/puzzles/{self.puzzle.pk}/"
         response = self.client.get(url)
         self.assertContains(response, 'data-phase="move"')
-        self.assertContains(response, "2 moves remaining · 0 wrong · 0 hints")
+        self.assertContains(response, "2 remaining · 0 wrong · 0 hints")
         self.assertNotContains(response, "Your move")
         self.assertContains(response, "piece-white-king")
 
@@ -301,13 +301,13 @@ class TestViews(EngineTestCase):
         with patch("puzzles.engine.random.choice", lambda options: "b8c8"):
             response = self.client.post(url + "move/", {"move": "a5b6"}, headers=headers)
         self.assertContains(response, 'data-phase="move"')
-        self.assertContains(response, "1 move remaining")
+        self.assertContains(response, "1 remaining")
         response = self.client.post(url + "hint/", headers=headers)
         self.assertContains(response, "hint")
         response = self.client.post(url + "move/", {"move": "e5e8"}, headers=headers)
         self.assertContains(response, 'data-phase="solved"')
         self.assertContains(response, "Next puzzle")
-        self.assertNotContains(response, "moves remaining")
+        self.assertNotContains(response, "remaining")
 
         response = self.client.post(url + "restart/")
         self.assertRedirects(response, url)

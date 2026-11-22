@@ -1,10 +1,10 @@
 {% extends "base.htmx" %}
-{% block title %}My results · LLM Chess{% endblock %}
+{% set username = request.user.get_username() %}
+{% block title %}Results for {{ username[:1]|upper }}{{ username[1:] }} · LLM Chess{% endblock %}
 {% block content %}
   <div class="space-y-5">
     <div>
-      <h1 class="font-serif text-3xl">My results</h1>
-      <p class="mt-1 text-muted">{{ request.user.get_username() }}</p>
+      <h1 class="font-serif text-3xl">Results for {{ username[:1]|upper }}{{ username[1:] }}</h1>
     </div>
 
     <div class="grid grid-cols-2 gap-3">

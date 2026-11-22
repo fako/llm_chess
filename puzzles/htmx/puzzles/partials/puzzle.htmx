@@ -17,7 +17,7 @@
     </div>
     <div class="shrink-0 text-right text-xs text-muted">
       <div>
-        {%- if state.phase.value == 'move' %}{{ state.moves_left }} {{ 'move' if state.moves_left == 1 else 'moves' }} remaining · {% endif -%}
+        {%- if state.phase.value == 'move' %}{{ state.moves_left }} remaining · {% endif -%}
         {{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints
       </div>
     </div>
