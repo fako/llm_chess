@@ -5,8 +5,13 @@ Answer with exactly {{ count }} puzzles. For every puzzle give:
 - perspective: "white" or "black", the side that solves the puzzle. It must match the side to move in the FEN.
 - solution: the main variations as lists of SAN moves, each starting with the first move of the solving side.
   Include the most important defences of the opponent as separate variations.
-- title: a short title that doesn't give away the solution.
-- hint: one sentence that nudges towards the idea without naming the first move.
+- title_en and title_nl: a short title in English and in Dutch that doesn't give away the solution.
+- hint_en and hint_nl: one sentence in English and in Dutch that nudges towards the idea without naming the first
+  move.
+
+Write the Dutch as a Dutch chess trainer would (wit, zwart, koning, dame, toren, loper, paard, pion, mat, schaak,
+penning). Avoid move notation in titles and hints. Name squares like e4 when needed, those are the same in both
+languages.
 
 Every position must be legal: exactly one king per side, kings not on adjacent squares, no pawns on the first or
 last rank, and the side that is not to move can't be in check. Castling rights and en passant squares in the FEN

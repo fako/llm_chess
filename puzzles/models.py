@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext
+from django.utils.translation import get_language, gettext
 
 import chess
 
@@ -30,13 +30,23 @@ class Effort(models.TextChoices):
     MAX = "max", "Max"
 
 
+def localized(instance: models.Model, field: str) -> str:
+    """
+    The value of a field like title_en or title_nl in the active language, falling back to English when empty.
+    """
+    value = getattr(instance, f"{field}_{get_language()}", "")
+    return value or getattr(instance, f"{field}_en")
+
+
 class ChessPuzzleCategory(models.Model):
     """
     A kind of puzzle like "mate in 2". The prompt is what an LLM gets to generate puzzles in this category.
     """
     slug = models.SlugField(unique=True)
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=255, blank=True)
+    name_en = models.CharField(max_length=100)
+    name_nl = models.CharField(max_length=100, blank=True)
+    description_en = models.CharField(max_length=255, blank=True)
+    description_nl = models.CharField(max_length=255, blank=True)
     prompt = models.TextField(
         help_text="Jinja2 template sent to the LLM. Available variables: count, mate_in."
     )
@@ -54,11 +64,19 @@ class ChessPuzzleCategory(models.Model):
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
-        ordering = ["order", "name"]
+        ordering = ["order", "name_en"]
         verbose_name_plural = "chess puzzle categories"
 
     def __str__(self) -> str:
-        return self.name
+        return self.name_en
+
+    @property
+    def name(self) -> str:
+        return localized(self, "name")
+
+    @property
+    def description(self) -> str:
+        return localized(self, "description")
 
     @property
     def depth(self) -> int:
@@ -83,8 +101,10 @@ class ChessPuzzle(models.Model):
     position = models.CharField(max_length=100, unique=True, help_text="FEN without move counters, to deduplicate.")
     perspective = models.CharField(max_length=5, choices=Perspective.choices)
     solution = models.JSONField(help_text="Solution tree verified and completed by the solver.")
-    title = models.CharField(max_length=255, blank=True)
-    hint = models.CharField(max_length=255, blank=True)
+    title_en = models.CharField(max_length=255, blank=True)
+    title_nl = models.CharField(max_length=255, blank=True)
+    hint_en = models.CharField(max_length=255, blank=True)
+    hint_nl = models.CharField(max_length=255, blank=True)
     model = models.CharField(max_length=50, choices=LLM.choices, blank=True,
                              help_text="The LLM that was asked to generate this puzzle.")
     effort = models.CharField(max_length=10, choices=Effort.choices, blank=True,
@@ -98,6 +118,14 @@ class ChessPuzzle(models.Model):
 
     def __str__(self) -> str:
         return f"{self.category} #{self.pk}"
+
+    @property
+    def title(self) -> str:
+        return localized(self, "title")
+
+    @property
+    def hint(self) -> str:
+        return localized(self, "hint")
 
     @property
     def board(self) -> chess.Board:

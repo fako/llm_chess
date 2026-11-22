@@ -39,8 +39,10 @@ class PuzzleProposal(BaseModel):
         description="Main variations as lists of moves in standard algebraic notation (SAN), "
                     "starting with the first move of the solving side, e.g. [\"Qh6+\", \"Kg8\", \"Qg7#\"]."
     )
-    title: str = Field(description="A short title for the puzzle that doesn't give away the solution.")
-    hint: str = Field(description="One sentence nudging towards the idea, without naming the first move.")
+    title_en: str = Field(description="A short English title for the puzzle that doesn't give away the solution.")
+    title_nl: str = Field(description="The same title in Dutch.")
+    hint_en: str = Field(description="One English sentence nudging towards the idea, without naming the first move.")
+    hint_nl: str = Field(description="The same hint in Dutch.")
 
 
 class PuzzleProposals(BaseModel):
@@ -136,8 +138,10 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
         position=position,
         perspective=proposal.perspective,
         solution=tree,
-        title=proposal.title[:255],
-        hint=proposal.hint[:255] if llm_was_right else "",
+        title_en=proposal.title_en[:255],
+        title_nl=proposal.title_nl[:255],
+        hint_en=proposal.hint_en[:255] if llm_was_right else "",
+        hint_nl=proposal.hint_nl[:255] if llm_was_right else "",
         generation={
             "proposal": proposal.model_dump(mode="json"),
             "llm_was_right": llm_was_right,

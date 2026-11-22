@@ -114,7 +114,7 @@ class TestProfile(TestCase):
         category = ChessPuzzleCategory.objects.get(slug="mate-in-1")
         puzzle = ChessPuzzle.objects.create(category=category, fen="6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
                                             position="x", perspective="white", solution={"moves": {}},
-                                            title="Back rank")
+                                            title_en="Back rank")
         UserChessPuzzle.objects.create(user=self.user, puzzle=puzzle, solved_at=timezone.now(), wrong_moves=2)
         response = self.client.get("/en/accounts/profile/")
         self.assertContains(response, "Results for Solver")

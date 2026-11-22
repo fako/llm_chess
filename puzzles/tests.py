@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import chess
 from django.test import TestCase
-from django.utils import timezone
+from django.utils import timezone, translation
 
 from accounts.models import User
 from puzzles import engine
@@ -22,7 +22,8 @@ MATE_IN_ONE = "6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1"
 
 def proposal(fen: str, perspective: str = "white", solution: list[list[str]] | None = None) -> PuzzleProposal:
     return PuzzleProposal(fen=fen, perspective=perspective, solution=solution or [["Kb6", "Ka8", "Re8#"]],
-                          title="A quiet king", hint="Your king can help.")
+                          title_en="A quiet king", title_nl="Een stille koning",
+                          hint_en="Your king can help.", hint_nl="Je koning kan helpen.")
 
 
 class TestSolver(TestCase):
@@ -66,6 +67,12 @@ class TestVerifyProposal(TestCase):
         self.assertEqual(set(puzzle.solution["moves"]["a5b6"]["replies"]), {"b8a8", "b8c8"})
         self.assertTrue(puzzle.generation["llm_was_right"])
         self.assertEqual(puzzle.hint, "Your king can help.")
+        with translation.override("nl"):
+            self.assertEqual(puzzle.title, "Een stille koning")
+            self.assertEqual(puzzle.hint, "Je koning kan helpen.")
+            self.assertEqual(self.category.name, "Mat in 2")
+            puzzle.title_nl = ""
+            self.assertEqual(puzzle.title, "A quiet king", "empty Dutch falls back to English")
 
     def test_keeps_sound_position_with_wrong_llm_solution(self):
         puzzle = verify_proposal(self.category, proposal(QUIET_KEY, solution=[["Re8+", "Kc7"]]))
