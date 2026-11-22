@@ -9,6 +9,7 @@ from puzzles import engine
 from puzzles.generation import PuzzleProposal, PuzzleProposals, Rejection, generate_puzzles, verify_proposal
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
 from puzzles.solver import analyse_mate_puzzle, build_solution_tree
+from puzzles.tags import TAGS, Coverage, Kind, balanced_tags, parse_tags
 
 
 # Rc7+ is the key, after which the king has three squares and Ra8 mates every time.
@@ -100,12 +101,14 @@ class FakeResource:
     result = None
 
     requests = []
+    contexts = []
 
     def __init__(self, llm=None):
         self.llm = llm
 
     def extract(self, *args, **kwargs):
         self.context = kwargs["context"]
+        FakeResource.contexts.append(self.context)
         FakeResource.requests.append((self.llm.value, kwargs["options"]["effort"]))
         return self
 
@@ -406,3 +409,69 @@ class TestOtherCategories(TestCase):
         response = self.client.get(f"/en/puzzles/{puzzle.pk}/")
         self.assertContains(response, 'data-phase="solved"')
         self.assertNotContains(response, "Pinned!")
+
+
+SMOTHERED = "6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1"
+CASTLING_MATE = "8/8/8/4b3/8/8/5R1N/R3K2k w Q - 0 1"  # only O-O-O mates
+
+
+class TestTags(TestCase):
+
+    def tags(self, slug, fen, perspective="white"):
+        puzzle = verify_proposal(ChessPuzzleCategory.objects.get(slug=slug), proposal(fen, perspective))
+        self.assertIsInstance(puzzle, ChessPuzzle, getattr(puzzle, "reason", None))
+        return set(puzzle.tags)
+
+    def test_mates(self):
+        self.assertEqual(self.tags("mate-in-1", SMOTHERED), {"few-pieces", "material-down", "mate-by-knight", "smothered"})
+        self.assertEqual(self.tags("mate-in-1", MATE_IN_ONE), {"back-rank"})
+        self.assertEqual(self.tags("mate-in-1", CASTLING_MATE), {"few-pieces", "castling"})
+
+    def test_ideas(self):
+        self.assertEqual(self.tags("mate-in-2", QUIET_KEY), {"few-pieces", "quiet-key", "king-joins"})
+        self.assertEqual(self.tags("mate-in-2", QUIET_KEY_BLACK, "black"), {"few-pieces", "quiet-key", "king-joins"})
+        self.assertEqual(self.tags("mate-in-2", CHECKING_KEY), {"few-pieces", "only-checks"})
+
+    def test_pins(self):
+        self.assertEqual(self.tags("pin-a-piece", BISHOP_PIN), {
+            "few-pieces", "minor-pieces-only", "king-in-centre", "pin-against-king", "pin-on-diagonal",
+            "pinned-by-bishop",
+        })
+
+    def test_tags_apply_to_categories(self):
+        mate_in_one = ChessPuzzleCategory.objects.get(slug="mate-in-1")
+        pin = ChessPuzzleCategory.objects.get(slug="pin-a-piece")
+        self.assertFalse(TAGS["zugzwang"].applies_to(mate_in_one))
+        self.assertTrue(TAGS["castling"].applies_to(pin))
+        self.assertFalse(TAGS["smothered"].applies_to(pin))
+        with self.assertRaisesRegex(ValueError, "don't apply"):
+            parse_tags(pin, ["smothered"])
+        with self.assertRaisesRegex(ValueError, "Unknown"):
+            parse_tags(pin, ["nonsense"])
+
+    def test_balance_prefers_missing_tags(self):
+        coverage = Coverage(category=ChessPuzzleCategory.objects.get(slug="mate-in-2"))
+        coverage.tags.update({slug: 100 for slug in TAGS if slug not in ("two-bishops", "boden")})
+        picks = [tuple(tag.slug for tag in balanced_tags(coverage)) for _ in range(20)]
+        self.assertGreater(picks.count(("two-bishops", "boden")), 15)
+        material, other = balanced_tags(coverage)
+        self.assertEqual(material.kind, Kind.MATERIAL)
+        self.assertNotEqual(other.kind, Kind.MATERIAL)
+
+    @patch("puzzles.generation.AnthropicPromptResource", FakeResource)
+    def test_generation_asks_for_tags(self):
+        FakeResource.contexts = []
+        report = generate_puzzles("mate-in-2", 1, tags=parse_tags(
+            ChessPuzzleCategory.objects.get(slug="mate-in-2"), ["only-checks", "two-bishops"]))
+        self.assertEqual(FakeResource.contexts[0]["tags"], [TAGS["only-checks"].instruction,
+                                                             TAGS["two-bishops"].instruction])
+        self.assertIsNone(FakeResource.contexts[0]["perspective"], "manual tags don't balance sides")
+        puzzle = report.created[0]
+        self.assertEqual(puzzle.generation["requested_tags"], ["only-checks", "two-bishops"])
+        self.assertEqual(report.matched_tags, {"only-checks": 1, "two-bishops": 0}, "tags are soft constraints")
+
+        generate_puzzles("mate-in-2", 1)
+        self.assertEqual(len(FakeResource.contexts[1]["tags"]), 2)
+        self.assertEqual(FakeResource.contexts[1]["perspective"], "black", "white has a puzzle already")
+        generate_puzzles("mate-in-2", 1, balance=False)
+        self.assertEqual((FakeResource.contexts[2]["tags"], FakeResource.contexts[2]["perspective"]), ([], None))

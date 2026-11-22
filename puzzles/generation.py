@@ -7,6 +7,7 @@ solver. Only proposals the solver accepts become a ChessPuzzle, with a solution 
 """
 import json
 import logging
+from collections import Counter
 from dataclasses import dataclass, field
 from typing import Literal
 from uuid import uuid4
@@ -20,6 +21,7 @@ from vendors.anthropic import AnthropicPromptResource, anthropic_llm_tag
 
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, Goal, Perspective
 from puzzles.solver import PuzzleAnalysis, analyse_mate_puzzle, analyse_pin_puzzle, build_pin_tree, build_solution_tree
+from puzzles.tags import Coverage, Tag, balanced_perspective, balanced_tags, detect_tags
 
 
 logger = logging.getLogger(__name__)
@@ -68,6 +70,8 @@ class GenerationReport:
     errors: list[str] = field(default_factory=list)
     requests: int = 0
     tokens: dict[str, int] = field(default_factory=dict)
+    requested_tags: Counter = field(default_factory=Counter)  # per requested tag: proposals verified with it asked
+    matched_tags: Counter = field(default_factory=Counter)  # per requested tag: puzzles that actually have it
 
     def add_usage(self, usage: dict[str, int]) -> None:
         for key, value in usage.items():
@@ -133,6 +137,7 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
     llm_was_right = llm_key in analysis.key_moves
     tree = build_tree(category, board)
     return ChessPuzzle(
+        tags=detect_tags(category, board, tree),
         category=category,
         fen=board.fen(),
         position=position,
@@ -151,11 +156,15 @@ def verify_proposal(category: ChessPuzzleCategory, proposal: PuzzleProposal) -> 
 
 def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_requests: int | None = None,
                      model: str | None = None, effort: str | None = None,
-                     batch_size: int | None = None) -> GenerationReport:
+                     batch_size: int | None = None, tags: list[Tag] | None = None,
+                     balance: bool = True) -> GenerationReport:
     """
     Generates count puzzles for a category, by asking the LLM for batches of proposals until enough of them are
     verified or max_requests is reached. Most LLM proposals don't survive verification, so batches are oversized.
     The model and effort default to those of the category.
+
+    Every request asks for the given tags. Without tags and with balance, every request asks for tags and a solving
+    side that the category has few puzzles of. Tags are soft: puzzles without them are kept with the tags they have.
     """
     if isinstance(category, str):
         category = ChessPuzzleCategory.objects.get(slug=category)
@@ -164,6 +173,7 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
     model = model or category.model
     effort = effort or category.effort
     report = GenerationReport(category=category, requested=count, model=model, effort=effort)
+    coverage = Coverage.of(category)
 
     while len(report.created) < count and report.requests < max_requests:
         size = batch_size or min(MAX_BATCH_SIZE, max(3, (count - len(report.created)) * 2))
@@ -172,9 +182,13 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
             .order_by("-created_at")
             .values_list("fen", flat=True)[:MAX_EXCLUDED_POSITIONS]
         )
+        request_tags = tags if tags else balanced_tags(coverage) if balance else []
+        perspective = balanced_perspective(coverage) if balance and not tags else None
         context = {
             "prompt": render_category_prompt(category, size),
             "count": size,
+            "tags": [tag.instruction for tag in request_tags],
+            "perspective": perspective,
             "excluded_positions": excluded_positions,
             "nonce": uuid4().hex,  # every request is a new request, instead of a cached earlier response
         }
@@ -210,6 +224,12 @@ def generate_puzzles(category: ChessPuzzleCategory | str, count: int, max_reques
             result.effort = effort
             result.generation["served_by"] = resource.served_by  # differs from model after a fallback
             result.generation["resource"] = str(resource.signature.hash) if resource.signature else None
+            result.generation["requested_tags"] = [tag.slug for tag in request_tags]
+            result.generation["requested_perspective"] = perspective
             result.save()
             report.created.append(result)
+            coverage.add(result)
+            for tag in request_tags:
+                report.requested_tags[tag.slug] += 1
+                report.matched_tags[tag.slug] += tag.slug in result.tags
     return report

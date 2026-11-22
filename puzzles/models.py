@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import get_language, gettext
 
@@ -105,6 +106,9 @@ class ChessPuzzle(models.Model):
     title_nl = models.CharField(max_length=255, blank=True)
     hint_en = models.CharField(max_length=255, blank=True)
     hint_nl = models.CharField(max_length=255, blank=True)
+    tags = ArrayField(models.CharField(max_length=50), default=list, blank=True,
+                      help_text="What the puzzle is about, as detected on the solution (see puzzles/tags.py). "
+                                "Only used to vary generation, never shown to users.")
     model = models.CharField(max_length=50, choices=LLM.choices, blank=True,
                              help_text="The LLM that was asked to generate this puzzle.")
     effort = models.CharField(max_length=10, choices=Effort.choices, blank=True,

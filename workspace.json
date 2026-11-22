@@ -38,6 +38,10 @@
         "migration": [
             "venv/bin/python manage.py migrate"
         ],
+        "v2_puzzles": [
+            "venv/bin/python manage.py migrate",
+            "venv/bin/python manage.py loaddata initial_puzzles"
+        ],
         "install": [
             "venv/bin/python manage.py createsuperuser",
             "venv/bin/python manage.py loaddata initial_puzzles"

@@ -1,6 +1,18 @@
 from django.contrib import admin
 
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
+from puzzles.tags import TAGS
+
+
+class TagFilter(admin.SimpleListFilter):
+    title = "tag"
+    parameter_name = "tag"
+
+    def lookups(self, request, model_admin):
+        return [(slug, slug) for slug in TAGS]
+
+    def queryset(self, request, queryset):
+        return queryset.filter(tags__contains=[self.value()]) if self.value() else queryset
 
 
 @admin.register(ChessPuzzleCategory)
@@ -11,10 +23,14 @@ class ChessPuzzleCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(ChessPuzzle)
 class ChessPuzzleAdmin(admin.ModelAdmin):
-    list_display = ("id", "category", "perspective", "fen", "model", "effort", "created_at")
-    list_filter = ("category", "perspective", "model", "effort")
+    list_display = ("id", "category", "perspective", "title_en", "tag_list", "model", "effort", "created_at")
+    list_filter = ("category", "perspective", TagFilter, "model", "effort")
     search_fields = ("fen", "title_en", "title_nl")
-    readonly_fields = ("position", "solution", "generation", "created_at")
+    readonly_fields = ("position", "tags", "solution", "generation", "created_at")
+
+    @admin.display(description="tags")
+    def tag_list(self, puzzle: ChessPuzzle) -> str:
+        return ", ".join(puzzle.tags)
 
 
 @admin.register(UserChessPuzzle)
