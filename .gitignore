@@ -27,6 +27,7 @@ venv/
 *.egg-info/
 
 # Local runtime state
+locale/**/*.mo
 .env
 staticfiles/
 data/

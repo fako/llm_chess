@@ -1,0 +1,206 @@
+# Translations of LLM Chess. Message ids are keys, see LANGUAGES in web/settings.py.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "web.menu.label"
+msgstr "Menu"
+
+msgid "web.menu.more_puzzles"
+msgstr "More puzzles"
+
+msgid "web.menu.my_results"
+msgstr "My results"
+
+msgid "web.menu.sign_out"
+msgstr "Sign out"
+
+msgid "accounts.login.title"
+msgstr "Log in"
+
+msgid "accounts.login.heading"
+msgstr "Welcome back"
+
+msgid "accounts.login.intro"
+msgstr "Log in to continue with your puzzles."
+
+msgid "accounts.login.submit"
+msgstr "Log in"
+
+msgid "accounts.login.new_here"
+msgstr "New here?"
+
+msgid "accounts.login.signup_link"
+msgstr "Create an account"
+
+msgid "accounts.signup.title"
+msgstr "Sign up"
+
+msgid "accounts.signup.heading"
+msgstr "Create an account"
+
+msgid "accounts.signup.intro"
+msgstr "Your progress on every puzzle is kept with your account."
+
+msgid "accounts.signup.submit"
+msgstr "Sign up"
+
+msgid "accounts.signup.have_account"
+msgstr "Already have an account?"
+
+msgid "accounts.signup.login_link"
+msgstr "Log in"
+
+msgid "accounts.signup.email"
+msgstr "Email"
+
+msgid "accounts.signup.email_taken"
+msgstr "An account with this email address already exists."
+
+msgid "accounts.password_change.title"
+msgstr "Change password"
+
+msgid "accounts.password_change.submit"
+msgstr "Change password"
+
+msgid "accounts.password_changed.title"
+msgstr "Password changed"
+
+msgid "accounts.password_changed.intro"
+msgstr "Use your new password the next time you log in."
+
+msgid "accounts.password_changed.back"
+msgstr "Back to my results"
+
+msgid "accounts.verify_email.title"
+msgstr "Check your email"
+
+msgid "accounts.verify_email.your_address"
+msgstr "your email address"
+
+msgid "accounts.verify_email.sent"
+msgstr "We sent a link to %(address)s. Open it to finish creating your account."
+
+msgid "accounts.confirm_email.title"
+msgstr "Confirm your email"
+
+msgid "accounts.confirm_email.heading"
+msgstr "Almost there"
+
+msgid "accounts.confirm_email.intro"
+msgstr "Confirm your email address to finish creating your account."
+
+msgid "accounts.confirm_email.submit"
+msgstr "Confirm and continue"
+
+msgid "accounts.profile.title"
+msgstr "Results for %(name)s"
+
+msgid "accounts.profile.solved"
+msgstr "puzzles solved"
+
+msgid "accounts.profile.clean"
+msgstr "without mistakes or hints"
+
+msgid "accounts.profile.wrong_moves"
+msgstr "wrong moves"
+
+msgid "accounts.profile.hints"
+msgstr "hints taken"
+
+msgid "accounts.profile.by_category"
+msgstr "By category"
+
+msgid "accounts.profile.recently_solved"
+msgstr "Recently solved"
+
+msgid "accounts.mail.validation.subject"
+msgstr "Confirm your email address for LLM Chess"
+
+msgid "accounts.mail.validation.body"
+msgstr "Welcome to LLM Chess!\n\nOpen this link to confirm your email address and finish signing up:\n\n%(url)s"
+
+msgid "puzzles.home.heading"
+msgstr "Choose your puzzles"
+
+msgid "puzzles.home.new_of"
+msgstr "new of %(total)s"
+
+msgid "puzzles.home.no_categories"
+msgstr "There are no puzzle categories yet."
+
+msgid "puzzles.category.back"
+msgstr "All categories"
+
+msgid "puzzles.category.empty"
+msgstr "There are no puzzles in this category yet. Check back soon."
+
+msgid "puzzles.category.done"
+msgstr "All done"
+
+msgid "puzzles.category.done_intro"
+msgstr "You solved every puzzle in this category. New puzzles are on their way."
+
+msgid "puzzles.goal.mate_in"
+msgstr "mate in %(depth)s"
+
+msgid "puzzles.goal.pin"
+msgstr "pin a piece"
+
+msgid "puzzles.puzzle.white_to_play"
+msgstr "White to play and %(task)s"
+
+msgid "puzzles.puzzle.black_to_play"
+msgstr "Black to play and %(task)s"
+
+msgid "puzzles.puzzle.untitled"
+msgstr "Puzzle #%(pk)s"
+
+msgid "puzzles.puzzle.hint"
+msgstr "Hint"
+
+msgid "puzzles.puzzle.show_move"
+msgstr "Show move"
+
+msgid "puzzles.puzzle.shown"
+msgstr "Shown"
+
+msgid "puzzles.puzzle.start_over"
+msgstr "Start over"
+
+msgid "puzzles.puzzle.previous"
+msgstr "Previous puzzle"
+
+msgid "puzzles.puzzle.next"
+msgstr "Next puzzle"
+
+msgid "puzzles.stats.remaining"
+msgstr "%(count)s remaining"
+
+msgid "puzzles.stats.wrong"
+msgstr "%(count)s wrong"
+
+msgid "puzzles.stats.hints"
+msgid_plural "puzzles.stats.hints.plural"
+msgstr[0] "%(num)s hint"
+msgstr[1] "%(num)s hints"
+
+msgid "puzzles.board.label"
+msgstr "Chess board"
+
+msgid "puzzles.board.promote_to"
+msgstr "Promote to"
+
+msgid "puzzles.board.queen"
+msgstr "queen"
+
+msgid "puzzles.board.rook"
+msgstr "rook"
+
+msgid "puzzles.board.bishop"
+msgstr "bishop"
+
+msgid "puzzles.board.knight"
+msgstr "knight"

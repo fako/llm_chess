@@ -32,6 +32,9 @@
             "npm ci",
             "venv/bin/invoke web.build-statics"
         ],
+        "translations": [
+            "venv/bin/invoke web.compile-messages"
+        ],
         "migration": [
             "venv/bin/python manage.py migrate"
         ],
@@ -40,11 +43,17 @@
             "venv/bin/python manage.py loaddata initial_puzzles"
         ]
     },
-    "pre_install": "statics",
+    "pre_install": [
+        "statics",
+        "translations"
+    ],
     "post_install": [
         "migration",
         "install"
     ],
-    "pre_deploy": "statics",
+    "pre_deploy": [
+        "statics",
+        "translations"
+    ],
     "post_deploy": null
 }

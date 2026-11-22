@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext
 
 import chess
 
@@ -68,9 +69,12 @@ class ChessPuzzleCategory(models.Model):
 
     @property
     def task(self) -> str:
+        """
+        What the player has to do, in the active language. It completes the "White to play and ..." sentence.
+        """
         if self.goal == Goal.PIN:
-            return "pin a piece"
-        return f"mate in {self.depth}"
+            return gettext("puzzles.goal.pin")
+        return gettext("puzzles.goal.mate_in") % {"depth": self.depth}
 
 
 class ChessPuzzle(models.Model):

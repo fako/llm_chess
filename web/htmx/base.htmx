@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ get_language() }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,30 +17,42 @@
         <svg class="h-7 w-7" viewBox="0 0 45 45" aria-hidden="true"><use href="#piece-black-knight"></use></svg>
         LLM Chess
       </a>
-      {% if request.user.is_authenticated %}
-        <details class="menu relative">
-          <summary class="-mr-2 flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-ink
-                          hover:bg-line/50 [&::-webkit-details-marker]:hidden" aria-label="Menu">
-            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-          </summary>
-          <nav class="card absolute right-0 z-50 mt-2 w-56 overflow-hidden py-1">
-            <a href="{{ url('puzzles:home') }}" class="block px-4 py-3 hover:bg-paper">More puzzles</a>
-            <a href="{{ url('accounts:profile') }}" class="block px-4 py-3 hover:bg-paper">My results</a>
-            <form method="post" action="{{ url('accounts:logout') }}" class="border-t border-line">
-              {{ csrf_input }}
-              <button class="block w-full px-4 py-3 text-left hover:bg-paper">Sign out</button>
-            </form>
-          </nav>
-        </details>
-        <script>
-          document.addEventListener("click", function (event) {
-            document.querySelectorAll("details.menu[open]").forEach(function (menu) {
-              if (!menu.contains(event.target)) { menu.removeAttribute("open"); }
+      <div class="flex items-center gap-1">
+        {% set switch = language_switch() %}
+        <form method="post" action="{{ url('set_language') }}">
+          {{ csrf_input }}
+          <input type="hidden" name="next" value="{{ request.get_full_path() }}">
+          <input type="hidden" name="language" value="{{ switch.code }}">
+          <button type="submit" lang="{{ switch.code }}" aria-label="{{ switch.name }}" title="{{ switch.name }}"
+                  class="{{ '' if request.user.is_authenticated else '-mr-2 ' }}flex h-11 w-11 items-center justify-center rounded-lg hover:bg-line/50">
+            <img src="{{ switch.flag }}" alt="" class="h-4 w-6 rounded-sm object-cover ring-1 ring-ink/15">
+          </button>
+        </form>
+        {% if request.user.is_authenticated %}
+          <details class="menu relative">
+            <summary class="-mr-2 flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-ink
+                            hover:bg-line/50 [&::-webkit-details-marker]:hidden" aria-label="{{ _('web.menu.label') }}">
+              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </summary>
+            <nav class="card absolute right-0 z-50 mt-2 w-56 overflow-hidden py-1">
+              <a href="{{ url('puzzles:home') }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.more_puzzles") }}</a>
+              <a href="{{ url('accounts:profile') }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.my_results") }}</a>
+              <form method="post" action="{{ url('accounts:logout') }}" class="border-t border-line">
+                {{ csrf_input }}
+                <button class="block w-full px-4 py-3 text-left hover:bg-paper">{{ _("web.menu.sign_out") }}</button>
+              </form>
+            </nav>
+          </details>
+          <script>
+            document.addEventListener("click", function (event) {
+              document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+                if (!menu.contains(event.target)) { menu.removeAttribute("open"); }
+              });
             });
-          });
-        </script>
-      {% endif %}
+          </script>
+        {% endif %}
+      </div>
     </div>
   </header>
   <main class="mx-auto max-w-xl px-4 pb-10 pt-5">

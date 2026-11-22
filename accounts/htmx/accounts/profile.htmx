@@ -1,15 +1,18 @@
 {% extends "base.htmx" %}
 {% set username = request.user.get_username() %}
-{% block title %}Results for {{ username[:1]|upper }}{{ username[1:] }} · LLM Chess{% endblock %}
+{% set heading = _("accounts.profile.title", name=username[:1]|upper ~ username[1:]) %}
+{% block title %}{{ heading }} · LLM Chess{% endblock %}
 {% block content %}
   <div class="space-y-5">
     <div>
-      <h1 class="font-serif text-3xl">Results for {{ username[:1]|upper }}{{ username[1:] }}</h1>
+      <h1 class="font-serif text-3xl">{{ heading }}</h1>
     </div>
 
     <div class="grid grid-cols-2 gap-3">
-      {% for value, label in [(solved_count, "puzzles solved"), (clean_count, "without mistakes or hints"),
-                              (wrong_moves, "wrong moves"), (hints, "hints taken")] %}
+      {% for value, label in [(solved_count, _("accounts.profile.solved")),
+                              (clean_count, _("accounts.profile.clean")),
+                              (wrong_moves, _("accounts.profile.wrong_moves")),
+                              (hints, _("accounts.profile.hints"))] %}
         <div class="card p-4">
           <div class="text-2xl font-semibold text-walnut">{{ value }}</div>
           <div class="text-xs text-muted">{{ label }}</div>
@@ -18,7 +21,7 @@
     </div>
 
     <section class="space-y-3">
-      <h2 class="font-serif text-xl">By category</h2>
+      <h2 class="font-serif text-xl">{{ _("accounts.profile.by_category") }}</h2>
       <ul class="card divide-y divide-line">
         {% for category in categories %}
           <li class="flex items-center justify-between gap-4 p-4">
@@ -37,18 +40,19 @@
 
     {% if recent %}
       <section class="space-y-3">
-        <h2 class="font-serif text-xl">Recently solved</h2>
+        <h2 class="font-serif text-xl">{{ _("accounts.profile.recently_solved") }}</h2>
         <ul class="card divide-y divide-line">
           {% for progress in recent %}
             <li>
               <a href="{{ url('puzzles:puzzle', kwargs={'pk': progress.puzzle.pk}) }}"
                  class="flex items-center justify-between gap-4 p-4 hover:bg-paper">
                 <div class="min-w-0">
-                  <div class="truncate font-medium">{{ progress.puzzle.title or "Puzzle #" ~ progress.puzzle.pk }}</div>
+                  <div class="truncate font-medium">{{ progress.puzzle.title or _("puzzles.puzzle.untitled", pk=progress.puzzle.pk) }}</div>
                   <div class="text-sm text-muted">{{ progress.puzzle.category.name }}</div>
                 </div>
                 <div class="shrink-0 text-right text-xs text-muted">
-                  {{ progress.wrong_moves }} wrong · {{ progress.hints_used }} hints
+                  {{ _("puzzles.stats.wrong", count=progress.wrong_moves) }} ·
+                  {{ ngettext("puzzles.stats.hints", "puzzles.stats.hints.plural", progress.hints_used) }}
                 </div>
               </a>
             </li>
@@ -57,6 +61,6 @@
       </section>
     {% endif %}
 
-    <a href="{{ url('accounts:password_change') }}" class="btn-secondary w-full">Change password</a>
+    <a href="{{ url('accounts:password_change') }}" class="btn-secondary w-full">{{ _("accounts.password_change.title") }}</a>
   </div>
 {% endblock %}

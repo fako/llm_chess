@@ -1,11 +1,15 @@
 {% extends "base.htmx" %}
-{% block title %}Check your email · LLM Chess{% endblock %}
+{% block title %}{{ _("accounts.verify_email.title") }} · LLM Chess{% endblock %}
 {% block content %}
   <div class="card space-y-2 p-5">
-    <h1 class="font-serif text-3xl">Check your email</h1>
+    <h1 class="font-serif text-3xl">{{ _("accounts.verify_email.title") }}</h1>
     <p class="text-muted">
-      We sent a link to {% if email %}<strong class="text-ink">{{ email }}</strong>{% else %}your email address{% endif %}.
-      Open it to finish creating your account.
+      {% if email %}
+        {% set address %}<strong class="text-ink">{{ email }}</strong>{% endset %}
+      {% else %}
+        {% set address = _("accounts.verify_email.your_address") %}
+      {% endif %}
+      {{ _("accounts.verify_email.sent", address=address) }}
     </p>
   </div>
 {% endblock %}

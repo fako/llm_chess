@@ -8,6 +8,14 @@
     return document.getElementById("puzzle");
   }
 
+  function labels(puzzle) {
+    try {
+      return JSON.parse(puzzle.dataset.labels || "{}");
+    } catch (error) {
+      return {};
+    }
+  }
+
   function legalMoves(puzzle) {
     try {
       return JSON.parse(puzzle.dataset.legal || "[]");
@@ -59,10 +67,11 @@
 
   function askPromotion(puzzle, moves) {
     const isWhite = puzzle.dataset.color === "white";
+    const text = labels(puzzle);
     const picker = document.createElement("div");
     picker.className = "promotion-picker card fixed inset-x-4 bottom-6 z-50 mx-auto flex max-w-sm justify-around p-3";
     picker.setAttribute("role", "dialog");
-    picker.setAttribute("aria-label", "Promote to");
+    picker.setAttribute("aria-label", text.promote || "Promote to");
     ["q", "r", "b", "n"].forEach(function (piece) {
       const uci = moves.find(function (move) { return move.slice(4) === piece; });
       if (!uci) {
@@ -72,7 +81,7 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "h-16 w-16 rounded-lg bg-square-light hover:bg-square-dark";
-      button.setAttribute("aria-label", names[piece]);
+      button.setAttribute("aria-label", text[piece] || names[piece]);
       button.innerHTML = '<svg viewBox="0 0 45 45" class="h-full w-full"><use href="#piece-' +
         (isWhite ? "white" : "black") + "-" + names[piece] + '"></use></svg>';
       button.dataset.promotion = uci;

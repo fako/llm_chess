@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
 from django.urls import reverse
 from django.utils.http import urlencode
+from django.utils.translation import gettext
 
 
 def send_validation(strategy, backend, code, partial_token):
@@ -10,8 +11,8 @@ def send_validation(strategy, backend, code, partial_token):
     query = urlencode({"verification_code": code.code, "partial_token": partial_token})
     url = strategy.build_absolute_uri(reverse("social:complete", args=(backend.name,)) + "?" + query)
     send_mail(
-        subject="Confirm your email address for LLM Chess",
-        message=f"Welcome to LLM Chess!\n\nOpen this link to confirm your email address and finish signing up:\n\n{url}\n",
+        subject=gettext("accounts.mail.validation.subject"),
+        message=gettext("accounts.mail.validation.body") % {"url": url} + "\n",
         from_email=None,
         recipient_list=[code.email],
     )

@@ -3,15 +3,15 @@
 {% block content %}
   <div class="space-y-5">
     <div>
-      <a href="{{ url('puzzles:home') }}" class="text-sm text-muted hover:text-walnut">&larr; All categories</a>
+      <a href="{{ url('puzzles:home') }}" class="text-sm text-muted hover:text-walnut">&larr; {{ _("puzzles.category.back") }}</a>
       <h1 class="mt-1 font-serif text-3xl">{{ category.name }}</h1>
     </div>
     {% if not has_puzzles %}
-      <div class="card p-5 text-muted">There are no puzzles in this category yet. Check back soon.</div>
+      <div class="card p-5 text-muted">{{ _("puzzles.category.empty") }}</div>
     {% else %}
       <div class="card p-5">
-        <h2 class="font-serif text-xl">All done</h2>
-        <p class="mt-1 text-muted">You solved every puzzle in this category. New puzzles are on their way.</p>
+        <h2 class="font-serif text-xl">{{ _("puzzles.category.done") }}</h2>
+        <p class="mt-1 text-muted">{{ _("puzzles.category.done_intro") }}</p>
       </div>
     {% endif %}
   </div>

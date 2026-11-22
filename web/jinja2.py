@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.messages import get_messages
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.urls import reverse
+from django.utils import translation
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
@@ -39,13 +40,35 @@ def piece_sprite() -> Markup:
     return Markup(f'<svg xmlns="http://www.w3.org/2000/svg" hidden>{"".join(symbols)}</svg>')
 
 
+FLAGS = {
+    "en": "img/flags/gb.svg",
+    "nl": "img/flags/nl.svg",
+}
+
+
+def language_switch() -> dict:
+    """
+    The language to switch to from the active language. With only two languages the switch toggles between them.
+    """
+    current = translation.get_language()
+    code, name = next(((code, name) for code, name in settings.LANGUAGES if code != current), settings.LANGUAGES[0])
+    return {"code": code, "name": name, "flag": staticfiles_storage.url(FLAGS[code])}
+
+
 def environment(**options):
     options["loader"] = HtmxLoader()
     options.setdefault("autoescape", True)
+    options["extensions"] = [*options.get("extensions", []), "jinja2.ext.i18n"]
     env = Environment(**options)
+    # Newstyle gettext formats variables into messages: _("profile.title", name=username) and escapes them.
+    # A literal percent sign in a message has to be written as %% because of this.
+    env.install_gettext_callables(translation.gettext, translation.ngettext, newstyle=True,
+                                  pgettext=translation.pgettext, npgettext=translation.npgettext)
     env.globals["static"] = staticfiles_storage.url
     env.globals["url"] = reverse
     env.globals["piece_sprite"] = piece_sprite
     env.globals["get_messages"] = get_messages
     env.globals["piece_id"] = piece_id
+    env.globals["get_language"] = translation.get_language
+    env.globals["language_switch"] = language_switch
     return env

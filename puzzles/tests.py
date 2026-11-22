@@ -276,17 +276,17 @@ class TestViews(EngineTestCase):
 
     def test_requires_login(self):
         self.client.logout()
-        response = self.client.get("/")
-        self.assertRedirects(response, "/accounts/login/?next=/")
+        response = self.client.get("/en/")
+        self.assertRedirects(response, "/en/accounts/login/?next=/en/")
 
     def test_home_and_category(self):
-        response = self.client.get("/")
+        response = self.client.get("/en/")
         self.assertContains(response, "Mate in 2")
-        response = self.client.get("/categories/mate-in-2/")
-        self.assertRedirects(response, f"/puzzles/{self.puzzle.pk}/")
+        response = self.client.get("/en/categories/mate-in-2/")
+        self.assertRedirects(response, f"/en/puzzles/{self.puzzle.pk}/")
 
     def test_play_through_htmx(self):
-        url = f"/puzzles/{self.puzzle.pk}/"
+        url = f"/en/puzzles/{self.puzzle.pk}/"
         response = self.client.get(url)
         self.assertContains(response, 'data-phase="move"')
         self.assertContains(response, "2 remaining · 0 wrong · 0 hints")
@@ -315,24 +315,28 @@ class TestViews(EngineTestCase):
     def test_previous_and_next_puzzle(self):
         other = verify_proposal(self.category, proposal(QUIET_KEY_BLACK, "black", [["Kb3"]]))
         other.save()
-        response = self.client.get(f"/puzzles/{self.puzzle.pk}/")
-        self.assertContains(response, f'href="/puzzles/{other.pk}/"')
+        response = self.client.get(f"/en/puzzles/{self.puzzle.pk}/")
+        self.assertContains(response, f'href="/en/puzzles/{other.pk}/"')
         self.assertContains(response, 'aria-label="Previous puzzle" disabled')
-        response = self.client.get(f"/puzzles/{other.pk}/")
-        self.assertContains(response, f'href="/puzzles/{self.puzzle.pk}/"')
+        response = self.client.get(f"/en/puzzles/{other.pk}/")
+        self.assertContains(response, f'href="/en/puzzles/{self.puzzle.pk}/"')
         self.assertContains(response, 'aria-label="Next puzzle" disabled')
 
     def test_board_orientation_for_black(self):
         puzzle = verify_proposal(self.category, proposal(QUIET_KEY_BLACK, "black", [["Kb3"]]))
         puzzle.save()
-        response = self.client.get(f"/puzzles/{puzzle.pk}/")
+        response = self.client.get(f"/en/puzzles/{puzzle.pk}/")
         content = response.content.decode()
         self.assertLess(content.index('data-square="h1"'), content.index('data-square="a8"'))
-        self.assertContains(response, "Black to play")
+        self.assertContains(response, "Black to play and mate in 2")
+        response = self.client.get(f"/nl/puzzles/{puzzle.pk}/")
+        self.assertContains(response, "Zwart speelt en geeft mat in 2")
+        self.assertContains(response, "nog 2 · 0 fout · 0 hints")
+        self.assertContains(response, "Promoveren tot")
 
     def test_category_after_everything_is_solved(self):
         UserChessPuzzle.objects.create(user=self.user, puzzle=self.puzzle, solved_at=timezone.now())
-        response = self.client.get("/categories/mate-in-2/")
+        response = self.client.get("/en/categories/mate-in-2/")
         self.assertContains(response, "All done")
 
 
@@ -392,6 +396,6 @@ class TestOtherCategories(TestCase):
         self.assertEqual(engine.get_state(progress).final_move["pin"]["pinned"], "c6")
 
         self.client.force_login(self.user)
-        response = self.client.get(f"/puzzles/{puzzle.pk}/")
+        response = self.client.get(f"/en/puzzles/{puzzle.pk}/")
         self.assertContains(response, 'data-phase="solved"')
         self.assertNotContains(response, "Pinned!")

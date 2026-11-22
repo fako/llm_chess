@@ -1,0 +1,206 @@
+# Translations of LLM Chess. Message ids are keys, see LANGUAGES in web/settings.py.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "web.menu.label"
+msgstr "Menu"
+
+msgid "web.menu.more_puzzles"
+msgstr "Meer puzzels"
+
+msgid "web.menu.my_results"
+msgstr "Mijn resultaten"
+
+msgid "web.menu.sign_out"
+msgstr "Uitloggen"
+
+msgid "accounts.login.title"
+msgstr "Inloggen"
+
+msgid "accounts.login.heading"
+msgstr "Welkom terug"
+
+msgid "accounts.login.intro"
+msgstr "Log in om verder te gaan met je puzzels."
+
+msgid "accounts.login.submit"
+msgstr "Inloggen"
+
+msgid "accounts.login.new_here"
+msgstr "Nieuw hier?"
+
+msgid "accounts.login.signup_link"
+msgstr "Maak een account aan"
+
+msgid "accounts.signup.title"
+msgstr "Registreren"
+
+msgid "accounts.signup.heading"
+msgstr "Account aanmaken"
+
+msgid "accounts.signup.intro"
+msgstr "Je voortgang op elke puzzel wordt bij je account bewaard."
+
+msgid "accounts.signup.submit"
+msgstr "Registreren"
+
+msgid "accounts.signup.have_account"
+msgstr "Heb je al een account?"
+
+msgid "accounts.signup.login_link"
+msgstr "Inloggen"
+
+msgid "accounts.signup.email"
+msgstr "E-mailadres"
+
+msgid "accounts.signup.email_taken"
+msgstr "Er bestaat al een account met dit e-mailadres."
+
+msgid "accounts.password_change.title"
+msgstr "Wachtwoord wijzigen"
+
+msgid "accounts.password_change.submit"
+msgstr "Wachtwoord wijzigen"
+
+msgid "accounts.password_changed.title"
+msgstr "Wachtwoord gewijzigd"
+
+msgid "accounts.password_changed.intro"
+msgstr "Gebruik je nieuwe wachtwoord de volgende keer dat je inlogt."
+
+msgid "accounts.password_changed.back"
+msgstr "Terug naar mijn resultaten"
+
+msgid "accounts.verify_email.title"
+msgstr "Controleer je e-mail"
+
+msgid "accounts.verify_email.your_address"
+msgstr "je e-mailadres"
+
+msgid "accounts.verify_email.sent"
+msgstr "We hebben een link gestuurd naar %(address)s. Open die om je account af te maken."
+
+msgid "accounts.confirm_email.title"
+msgstr "Bevestig je e-mailadres"
+
+msgid "accounts.confirm_email.heading"
+msgstr "Bijna klaar"
+
+msgid "accounts.confirm_email.intro"
+msgstr "Bevestig je e-mailadres om je account af te maken."
+
+msgid "accounts.confirm_email.submit"
+msgstr "Bevestigen en doorgaan"
+
+msgid "accounts.profile.title"
+msgstr "Resultaten van %(name)s"
+
+msgid "accounts.profile.solved"
+msgstr "puzzels opgelost"
+
+msgid "accounts.profile.clean"
+msgstr "zonder fouten of hints"
+
+msgid "accounts.profile.wrong_moves"
+msgstr "foute zetten"
+
+msgid "accounts.profile.hints"
+msgstr "hints gebruikt"
+
+msgid "accounts.profile.by_category"
+msgstr "Per categorie"
+
+msgid "accounts.profile.recently_solved"
+msgstr "Recent opgelost"
+
+msgid "accounts.mail.validation.subject"
+msgstr "Bevestig je e-mailadres voor LLM Chess"
+
+msgid "accounts.mail.validation.body"
+msgstr "Welkom bij LLM Chess!\n\nOpen deze link om je e-mailadres te bevestigen en je registratie af te ronden:\n\n%(url)s"
+
+msgid "puzzles.home.heading"
+msgstr "Kies je puzzels"
+
+msgid "puzzles.home.new_of"
+msgstr "nieuw van %(total)s"
+
+msgid "puzzles.home.no_categories"
+msgstr "Er zijn nog geen puzzelcategorieën."
+
+msgid "puzzles.category.back"
+msgstr "Alle categorieën"
+
+msgid "puzzles.category.empty"
+msgstr "Er zijn nog geen puzzels in deze categorie. Kom snel terug."
+
+msgid "puzzles.category.done"
+msgstr "Alles opgelost"
+
+msgid "puzzles.category.done_intro"
+msgstr "Je hebt elke puzzel in deze categorie opgelost. Er komen nieuwe puzzels aan."
+
+msgid "puzzles.goal.mate_in"
+msgstr "geeft mat in %(depth)s"
+
+msgid "puzzles.goal.pin"
+msgstr "pent een stuk"
+
+msgid "puzzles.puzzle.white_to_play"
+msgstr "Wit speelt en %(task)s"
+
+msgid "puzzles.puzzle.black_to_play"
+msgstr "Zwart speelt en %(task)s"
+
+msgid "puzzles.puzzle.untitled"
+msgstr "Puzzel #%(pk)s"
+
+msgid "puzzles.puzzle.hint"
+msgstr "Hint"
+
+msgid "puzzles.puzzle.show_move"
+msgstr "Toon zet"
+
+msgid "puzzles.puzzle.shown"
+msgstr "Getoond"
+
+msgid "puzzles.puzzle.start_over"
+msgstr "Opnieuw"
+
+msgid "puzzles.puzzle.previous"
+msgstr "Vorige puzzel"
+
+msgid "puzzles.puzzle.next"
+msgstr "Volgende puzzel"
+
+msgid "puzzles.stats.remaining"
+msgstr "nog %(count)s"
+
+msgid "puzzles.stats.wrong"
+msgstr "%(count)s fout"
+
+msgid "puzzles.stats.hints"
+msgid_plural "puzzles.stats.hints.plural"
+msgstr[0] "%(num)s hint"
+msgstr[1] "%(num)s hints"
+
+msgid "puzzles.board.label"
+msgstr "Schaakbord"
+
+msgid "puzzles.board.promote_to"
+msgstr "Promoveren tot"
+
+msgid "puzzles.board.queen"
+msgstr "dame"
+
+msgid "puzzles.board.rook"
+msgstr "toren"
+
+msgid "puzzles.board.bishop"
+msgstr "loper"
+
+msgid "puzzles.board.knight"
+msgstr "paard"

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from django.urls import reverse_lazy
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -66,6 +68,7 @@ TEMPLATES = [
             "environment": "web.jinja2.environment",
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.csrf",
@@ -126,7 +129,19 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-LANGUAGE_CODE = "en-us"
+# Translations
+# Pages live under /en/ and /nl/. Without a prefix the language comes from the language cookie (set by the language
+# switch) and otherwise the Accept-Language header of the browser, falling back to English.
+# Our own messages use keys like "puzzles.home.title" instead of English text, so that changing English text doesn't
+# invalidate the Dutch translations. That's why English has a catalog too: it maps the keys to English text, and
+# languages that miss a key fall back to it. Edit locale/*/LC_MESSAGES/django.po and run "invoke web.compile-messages".
+
+LANGUAGE_CODE = "en"
+LANGUAGES = [
+    ("en", "English"),
+    ("nl", "Nederlands"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 TIME_ZONE = "UTC"
 
@@ -145,12 +160,13 @@ SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
 SOCIAL_AUTH_URL_NAMESPACE = "social"
 SOCIAL_AUTH_STRATEGY = "accounts.strategy.AccountsStrategy"
 SOCIAL_AUTH_USER_FIELDS = ["username", "email"]
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = "/"
-SOCIAL_AUTH_LOGIN_ERROR_URL = "/accounts/login/"
-SOCIAL_AUTH_USERNAME_FORM_URL = "/accounts/login/"
+# Lazy URLs resolve to the language of the current request
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = reverse_lazy("puzzles:home")
+SOCIAL_AUTH_LOGIN_ERROR_URL = reverse_lazy("accounts:login")
+SOCIAL_AUTH_USERNAME_FORM_URL = reverse_lazy("accounts:login")
 SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION = ACCOUNTS_EMAIL_VERIFICATION
 SOCIAL_AUTH_EMAIL_VALIDATION_FUNCTION = "accounts.mail.send_validation"
-SOCIAL_AUTH_EMAIL_VALIDATION_URL = "/accounts/verify-email/"
+SOCIAL_AUTH_EMAIL_VALIDATION_URL = reverse_lazy("accounts:verify_email")
 SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
     "social_core.pipeline.social_auth.social_uid",
