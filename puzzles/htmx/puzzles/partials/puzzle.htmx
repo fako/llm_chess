@@ -1,9 +1,9 @@
 {% set progress = state.progress %}
 {% macro puzzle_link(target, symbol, label) -%}
   {% if target %}
-    <a href="{{ url('puzzles:puzzle', kwargs={'pk': target.pk}) }}" class="btn-secondary" aria-label="{{ label }}" title="{{ label }}">{{ symbol }}</a>
+    <a href="{{ url('puzzles:puzzle', kwargs={'pk': target.pk}) }}" class="btn-secondary btn-sm shrink-0 px-2" aria-label="{{ label }}" title="{{ label }}">{{ symbol }}</a>
   {% else %}
-    <button type="button" class="btn-secondary" aria-label="{{ label }}" disabled>{{ symbol }}</button>
+    <button type="button" class="btn-secondary btn-sm shrink-0 px-2" aria-label="{{ label }}" disabled>{{ symbol }}</button>
   {% endif %}
 {%- endmacro %}
 {% set action_url = url('puzzles:puzzle_action', kwargs={'pk': puzzle.pk, 'action': 'ACTION'}) %}
@@ -60,14 +60,14 @@
     {% if puzzle.hint and progress.hint_level >= 1 and not progress.line %}
       <p class="rounded-lg bg-sage/15 px-3 py-2 text-center text-sm text-ink">{{ puzzle.hint }}</p>
     {% endif %}
-    <div class="grid grid-cols-[auto_1fr_1fr_auto] gap-2">
+    <div class="flex items-stretch gap-2">
       {{ puzzle_link(previous_puzzle, '‹', _('puzzles.puzzle.previous')) }}
-      <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
+      <button class="btn-secondary btn-sm min-w-0 flex-1" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
               hx-target="#puzzle" hx-swap="outerHTML"
               {% if progress.hint_level >= 2 %}disabled{% endif %}>
         {% if progress.hint_level == 0 %}{{ _("puzzles.puzzle.hint") }}{% elif progress.hint_level == 1 %}{{ _("puzzles.puzzle.show_move") }}{% else %}{{ _("puzzles.puzzle.shown") }}{% endif %}
       </button>
-      <button class="btn-secondary" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
+      <button class="btn-secondary btn-sm min-w-0 flex-1" hx-post="{{ action_url|replace('ACTION', 'restart') }}"
               hx-target="#puzzle" hx-swap="outerHTML" {% if not progress.line %}disabled{% endif %}>
         {{ _("puzzles.puzzle.start_over") }}
       </button>

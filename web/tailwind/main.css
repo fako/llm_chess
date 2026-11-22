@@ -13,6 +13,9 @@
   .btn-secondary {
     @apply btn border border-line bg-card text-ink hover:border-walnut-light;
   }
+  .btn-sm {
+    @apply whitespace-nowrap px-3 py-2 text-sm;
+  }
   .card {
     @apply rounded-xl border border-line bg-card shadow-sm;
   }
