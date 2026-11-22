@@ -1,74 +1,1486 @@
 [
-    {
-        "model": "puzzles.chesspuzzlecategory",
-        "pk": 1,
-        "fields": {
-            "slug": "mate-in-2",
-            "name_en": "Mate in 2",
-            "name_nl": "Mat in 2",
-            "description_en": "Force checkmate in two moves, whatever your opponent tries.",
-            "description_nl": "Geef mat in twee zetten, wat je tegenstander ook probeert.",
-            "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in {{ mate_in }}\" puzzles.\n\nIn a mate in {{ mate_in }} the solving side moves first and forces checkmate with its second move, whatever the opponent replies. The first move (the key) must be the only move that forces mate in {{ mate_in }}, and there must be no mate in 1.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total. Fewer pieces make the puzzle cleaner and easier to verify.\n- The best puzzles have a surprising key. Avoid keys that are the most obvious check on the board.",
-            "goal": "mate",
-            "mate_in": 2,
-            "model": "claude-opus-5-5",
-            "effort": "high",
-            "is_active": true,
-            "order": 2
-        }
-    },
-    {
-        "model": "puzzles.chesspuzzlecategory",
-        "pk": 2,
-        "fields": {
-            "slug": "mate-in-1",
-            "name_en": "Mate in 1",
-            "name_nl": "Mat in 1",
-            "description_en": "Find the one move that checkmates.",
-            "description_nl": "Vind de enige zet die mat zet.",
-            "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in 1\" puzzles.\n\nIn a mate in 1 the solving side checkmates with its first move. That move must be the only move that mates.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total.\n- Make the mate a little hidden: avoid positions where several checks look equally natural and one of them simply mates.\n- Make sure no second move mates as well: check every other check, capture and promotion of the solving side.",
-            "goal": "mate",
-            "mate_in": 1,
-            "model": "claude-opus-5-5",
-            "effort": "high",
-            "is_active": true,
-            "order": 1
-        }
-    },
-    {
-        "model": "puzzles.chesspuzzlecategory",
-        "pk": 3,
-        "fields": {
-            "slug": "mate-in-3",
-            "name_en": "Mate in 3",
-            "name_nl": "Mat in 3",
-            "description_en": "Force checkmate in three moves, against every defence.",
-            "description_nl": "Geef mat in drie zetten, tegen elke verdediging.",
-            "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in {{ mate_in }}\" puzzles.\n\nIn a mate in {{ mate_in }} the solving side moves first and forces checkmate with its third move, whatever the opponent replies. The first move (the key) must be the only move that forces mate in {{ mate_in }}, and there must be no mate in 1 or mate in 2.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total. Fewer pieces make the puzzle cleaner and easier to verify.\n- Good mates in 3 combine two ideas, for instance a move that opens the king followed by a second blow before the mate.",
-            "goal": "mate",
-            "mate_in": 3,
-            "model": "claude-opus-5-5",
-            "effort": "high",
-            "is_active": true,
-            "order": 3
-        }
-    },
-    {
-        "model": "puzzles.chesspuzzlecategory",
-        "pk": 4,
-        "fields": {
-            "slug": "pin-a-piece",
-            "name_en": "Pin a piece",
-            "name_nl": "Penning",
-            "description_en": "Pin an enemy piece to its king or queen.",
-            "description_nl": "Pen een stuk van je tegenstander vast tegen zijn koning of dame.",
-            "prompt": "You are a chess trainer. Compose {{ count }} original \"pin a piece\" puzzles.\n\nIn these puzzles the solving side has exactly one move that pins a piece of the opponent: after the move a bishop, rook or queen of the solving side attacks an opponent piece that can't move away (or shouldn't), because the opponent's king or queen stands behind it on the same line.\n\nRules the puzzle must follow:\n- Exactly one legal move creates a new pin against the king or the queen. Pins that already exist before the move don't count, and no other move may create a pin as well.\n- After the move the pinning piece is safe: the opponent can't capture it, or only with a piece that is worth at least as much while the pinning piece is defended.\n- A pin against the queen only counts when the pinning piece is a bishop or rook.\n- There is no checkmate in 1 for the solving side.\n\nGuidelines:\n- Make the pin worth something: the pinned piece is undefended, attacked a second time, or the pin wins the piece behind it.\n- Keep positions compact and realistic, with 8 to 16 pieces in total, as if taken from a middlegame or endgame.",
-            "goal": "pin",
-            "mate_in": null,
-            "model": "claude-opus-5-5",
-            "effort": "high",
-            "is_active": true,
-            "order": 4
-        }
+{
+    "model": "puzzles.chesspuzzlecategory",
+    "pk": 1,
+    "fields": {
+        "slug": "mate-in-2",
+        "name_en": "Mate in 2",
+        "name_nl": "Mat in 2",
+        "description_en": "Force checkmate in two moves, whatever your opponent tries.",
+        "description_nl": "Geef mat in twee zetten, wat je tegenstander ook probeert.",
+        "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in {{ mate_in }}\" puzzles.\n\nIn a mate in {{ mate_in }} the solving side moves first and forces checkmate with its second move, whatever the opponent replies. The first move (the key) must be the only move that forces mate in {{ mate_in }}, and there must be no mate in 1.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total. Fewer pieces make the puzzle cleaner and easier to verify.\n- The best puzzles have a surprising key. Avoid keys that are the most obvious check on the board.",
+        "goal": "mate",
+        "mate_in": 2,
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "is_active": true,
+        "order": 2
     }
+},
+{
+    "model": "puzzles.chesspuzzlecategory",
+    "pk": 2,
+    "fields": {
+        "slug": "mate-in-1",
+        "name_en": "Mate in 1",
+        "name_nl": "Mat in 1",
+        "description_en": "Find the one move that checkmates.",
+        "description_nl": "Vind de enige zet die mat zet.",
+        "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in 1\" puzzles.\n\nIn a mate in 1 the solving side checkmates with its first move. That move must be the only move that mates.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total.\n- Make the mate a little hidden: avoid positions where several checks look equally natural and one of them simply mates.\n- Make sure no second move mates as well: check every other check, capture and promotion of the solving side.",
+        "goal": "mate",
+        "mate_in": 1,
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "is_active": true,
+        "order": 1
+    }
+},
+{
+    "model": "puzzles.chesspuzzlecategory",
+    "pk": 3,
+    "fields": {
+        "slug": "mate-in-3",
+        "name_en": "Mate in 3",
+        "name_nl": "Mat in 3",
+        "description_en": "Force checkmate in three moves, against every defence.",
+        "description_nl": "Geef mat in drie zetten, tegen elke verdediging.",
+        "prompt": "You are a chess problem composer. Compose {{ count }} original \"mate in {{ mate_in }}\" puzzles.\n\nIn a mate in {{ mate_in }} the solving side moves first and forces checkmate with its third move, whatever the opponent replies. The first move (the key) must be the only move that forces mate in {{ mate_in }}, and there must be no mate in 1 or mate in 2.\n\nGuidelines:\n- Keep positions compact, with at most 12 pieces in total. Fewer pieces make the puzzle cleaner and easier to verify.\n- Good mates in 3 combine two ideas, for instance a move that opens the king followed by a second blow before the mate.",
+        "goal": "mate",
+        "mate_in": 3,
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "is_active": true,
+        "order": 3
+    }
+},
+{
+    "model": "puzzles.chesspuzzlecategory",
+    "pk": 4,
+    "fields": {
+        "slug": "pin-a-piece",
+        "name_en": "Pin a piece",
+        "name_nl": "Penning",
+        "description_en": "Pin an enemy piece to its king or queen.",
+        "description_nl": "Pen een stuk van je tegenstander vast tegen zijn koning of dame.",
+        "prompt": "You are a chess trainer. Compose {{ count }} original \"pin a piece\" puzzles.\n\nIn these puzzles the solving side has exactly one move that pins a piece of the opponent: after the move a bishop, rook or queen of the solving side attacks an opponent piece that can't move away (or shouldn't), because the opponent's king or queen stands behind it on the same line.\n\nRules the puzzle must follow:\n- Exactly one legal move creates a new pin against the king or the queen. Pins that already exist before the move don't count, and no other move may create a pin as well.\n- After the move the pinning piece is safe: the opponent can't capture it, or only with a piece that is worth at least as much while the pinning piece is defended.\n- A pin against the queen only counts when the pinning piece is a bishop or rook.\n- There is no checkmate in 1 for the solving side.\n\nGuidelines:\n- Make the pin worth something: the pinned piece is undefended, attacked a second time, or the pin wins the piece behind it.\n- Keep positions compact and realistic, with 8 to 16 pieces in total, as if taken from a middlegame or endgame.",
+        "goal": "pin",
+        "mate_in": null,
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "is_active": true,
+        "order": 4
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 14,
+    "fields": {
+        "category": 2,
+        "fen": "4R3/8/8/8/2pp4/2pk4/8/R3K3 w Q - 0 1",
+        "position": "4R3/8/8/8/2pp4/2pk4/8/R3K3 w Q -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "e1c1": {
+                    "end": true,
+                    "san": "O-O-O#"
+                }
+            }
+        },
+        "title_en": "The Missing Guard",
+        "title_nl": "De ontbrekende bewaker",
+        "hint_en": "Checking on the d-file is easy, but c2 must be covered at the same time.",
+        "hint_nl": "Schaak geven over de d-lijn is makkelijk, maar tegelijk moet c2 gedekt worden.",
+        "tags": "[\"few-pieces\", \"castling\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "4R3/8/8/8/2pp4/2pk4/8/R3K3 w Q - 0 1",
+                "hint_en": "Checking on the d-file is easy, but c2 must be covered at the same time.",
+                "hint_nl": "Schaak geven over de d-lijn is makkelijk, maar tegelijk moet c2 gedekt worden.",
+                "solution": [
+                    [
+                        "O-O-O#"
+                    ]
+                ],
+                "title_en": "The Missing Guard",
+                "title_nl": "De ontbrekende bewaker",
+                "perspective": "white"
+            },
+            "resource": "61342871556091378380638090201856661716380701804628194442006325062634213870161",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "castling"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T14:16:04.903Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 15,
+    "fields": {
+        "category": 2,
+        "fen": "8/8/8/8/3k4/8/4p2P/5N1K b - - 0 1",
+        "position": "8/8/8/8/3k4/8/4p2P/5N1K b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "e2f1q": {
+                    "end": true,
+                    "san": "exf1=Q#"
+                }
+            }
+        },
+        "title_en": "The Knight in the Way",
+        "title_nl": "Het paard in de weg",
+        "hint_en": "A straight promotion is blocked, so look for a way to clear the back rank and cover the white king's escape on the diagonal at the same time.",
+        "hint_nl": "Gewoon promoveren loopt vast, dus zoek een manier om de onderste rij open te breken en tegelijk het vluchtveld van de witte koning via de diagonaal te dekken.",
+        "tags": "[\"minor-pieces-only\", \"material-down\", \"few-pieces\", \"promotion\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "8/8/8/8/3k4/8/4p2P/5N1K b - - 0 1",
+                "hint_en": "A straight promotion is blocked, so look for a way to clear the back rank and cover the white king's escape on the diagonal at the same time.",
+                "hint_nl": "Gewoon promoveren loopt vast, dus zoek een manier om de onderste rij open te breken en tegelijk het vluchtveld van de witte koning via de diagonaal te dekken.",
+                "solution": [
+                    [
+                        "exf1=Q#"
+                    ]
+                ],
+                "title_en": "The Knight in the Way",
+                "title_nl": "Het paard in de weg",
+                "perspective": "black"
+            },
+            "resource": "95258327265400955927160626224103102874265858121345016328864660986149745058615",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "promotion"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T14:17:40.042Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 16,
+    "fields": {
+        "category": 2,
+        "fen": "r2q1r2/pp2Nppk/8/8/8/1P3R2/P4PPP/2B3K1 w - - 0 1",
+        "position": "r2q1r2/pp2Nppk/8/8/8/1P3R2/P4PPP/2B3K1 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "f3h3": {
+                    "end": true,
+                    "san": "Rh3#"
+                }
+            }
+        },
+        "title_en": "The Open File",
+        "title_nl": "De open lijn",
+        "hint_en": "The black king is boxed in by its own pawn and your knight; only one file still needs to be closed.",
+        "hint_nl": "De zwarte koning zit klem tussen zijn eigen pion en jouw paard; er moet nog maar één lijn dicht.",
+        "tags": "[\"material-down\", \"crowded-board\", \"anastasia\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "r2q1r2/pp2Nppk/8/8/8/1P3R2/P4PPP/2B3K1 w - - 0 1",
+                "hint_en": "The black king is boxed in by its own pawn and your knight; only one file still needs to be closed.",
+                "hint_nl": "De zwarte koning zit klem tussen zijn eigen pion en jouw paard; er moet nog maar één lijn dicht.",
+                "solution": [
+                    [
+                        "Rh3#"
+                    ]
+                ],
+                "title_en": "The Open File",
+                "title_nl": "De open lijn",
+                "perspective": "white"
+            },
+            "resource": "10983463472738160150800844560202427208460415429718958633828253793586083698249",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "anastasia"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T14:19:16.283Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 17,
+    "fields": {
+        "category": 2,
+        "fen": "2bq2k1/1p3ppp/8/8/2B5/8/P2Q1PPP/r3n1K1 b - - 0 1",
+        "position": "2bq2k1/1p3ppp/8/8/2B5/8/P2Q1PPP/r3n1K1 b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "e1f3": {
+                    "end": true,
+                    "san": "Nf3#"
+                }
+            }
+        },
+        "title_en": "The Hidden Rook",
+        "title_nl": "De verborgen toren",
+        "hint_en": "The rook in the corner is only waiting for the knight to step aside, so make that step count twice.",
+        "hint_nl": "De toren in de hoek wacht alleen tot het paard opzij stapt, zorg dat die stap dubbel telt.",
+        "tags": "[\"crowded-board\", \"discovered-check\", \"double-check\", \"mate-by-knight\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "2bq2k1/1p3ppp/8/8/2B5/8/P2Q1PPP/r3n1K1 b - - 0 1",
+                "hint_en": "The rook in the corner is only waiting for the knight to step aside, so make that step count twice.",
+                "hint_nl": "De toren in de hoek wacht alleen tot het paard opzij stapt, zorg dat die stap dubbel telt.",
+                "solution": [
+                    [
+                        "Nf3#"
+                    ]
+                ],
+                "title_en": "The Hidden Rook",
+                "title_nl": "De verborgen toren",
+                "perspective": "black"
+            },
+            "resource": "59075878260625341119043417963228162249431200916522078876819401762182051560800",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "double-check"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T14:22:06.596Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 18,
+    "fields": {
+        "category": 2,
+        "fen": "3rkr2/pp4pp/2p5/q7/8/1QN5/P4PPP/R5K1 w - - 0 1",
+        "position": "3rkr2/pp4pp/2p5/q7/8/1QN5/P4PPP/R5K1 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "b3e6": {
+                    "end": true,
+                    "san": "Qe6#"
+                }
+            }
+        },
+        "title_en": "Rooks as Shoulder Pads",
+        "title_nl": "Torens als epauletten",
+        "hint_en": "The black king is boxed in by its own rooks, so only the three squares in front of it still matter.",
+        "hint_nl": "De zwarte koning zit klem tussen zijn eigen torens, dus alleen de drie velden vóór hem doen er nog toe.",
+        "tags": "[\"material-down\", \"crowded-board\", \"king-in-centre\", \"epaulette\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "3rkr2/pp4pp/2p5/q7/8/1QN5/P4PPP/R5K1 w - - 0 1",
+                "hint_en": "The black king is boxed in by its own rooks, so only the three squares in front of it still matter.",
+                "hint_nl": "De zwarte koning zit klem tussen zijn eigen torens, dus alleen de drie velden vóór hem doen er nog toe.",
+                "solution": [
+                    [
+                        "Qe6#"
+                    ]
+                ],
+                "title_en": "Rooks as Shoulder Pads",
+                "title_nl": "Torens als epauletten",
+                "perspective": "white"
+            },
+            "resource": "44740170991707055499839412732583918759914279103431344042153263628496977477238",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "epaulette"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T14:24:01.385Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 19,
+    "fields": {
+        "category": 1,
+        "fen": "8/7p/8/5N2/8/8/p1K5/k7 w - - 0 1",
+        "position": "8/7p/8/5N2/8/8/p1K5/k7 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "f5d4": {
+                    "end": false,
+                    "san": "Nd4",
+                    "replies": {
+                        "h7h5": {
+                            "san": "h5",
+                            "moves": {
+                                "d4b3": {
+                                    "end": true,
+                                    "san": "Nb3#"
+                                }
+                            }
+                        },
+                        "h7h6": {
+                            "san": "h6",
+                            "moves": {
+                                "d4b3": {
+                                    "end": true,
+                                    "san": "Nb3#"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "The Long Way Round",
+        "title_nl": "De lange omweg",
+        "hint_en": "The black king is already boxed in, so find the one route that brings your knight to a checking square in time.",
+        "hint_nl": "De zwarte koning zit al opgesloten, dus zoek de enige route waarlangs je paard op tijd een schaakveld bereikt.",
+        "tags": "[\"minor-pieces-only\", \"few-pieces\", \"quiet-key\", \"mate-by-knight\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "8/7p/8/5N2/8/8/p1K5/k7 w - - 0 1",
+                "hint_en": "The black king is already boxed in, so find the one route that brings your knight to a checking square in time.",
+                "hint_nl": "De zwarte koning zit al opgesloten, dus zoek de enige route waarlangs je paard op tijd een schaakveld bereikt.",
+                "solution": [
+                    [
+                        "Nd4",
+                        "h6",
+                        "Nb3#"
+                    ],
+                    [
+                        "Nd4",
+                        "h5",
+                        "Nb3#"
+                    ]
+                ],
+                "title_en": "The Long Way Round",
+                "title_nl": "De lange omweg",
+                "perspective": "white"
+            },
+            "resource": "107076181344442897079048140838435359061386795332519811157346428348370361529952",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces",
+                "quiet-key"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "quiet-key"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T14:26:52.028Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 20,
+    "fields": {
+        "category": 1,
+        "fen": "6k1/8/8/8/3q4/7n/6PP/5R1K b - - 0 1",
+        "position": "6k1/8/8/8/3q4/7n/6PP/5R1K b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "d4g1": {
+                    "end": false,
+                    "san": "Qg1+",
+                    "replies": {
+                        "f1g1": {
+                            "san": "Rxg1",
+                            "moves": {
+                                "h3f2": {
+                                    "end": true,
+                                    "san": "Nf2#"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "Buried Alive",
+        "title_nl": "Levend begraven",
+        "hint_en": "The white king is already hemmed in by its own men; persuade one more of them to close the last door.",
+        "hint_nl": "De witte koning zit al opgesloten door zijn eigen stukken; dwing er nog één om de laatste deur dicht te doen.",
+        "tags": "[\"few-pieces\", \"sacrifice\", \"only-checks\", \"mate-by-knight\", \"smothered\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "6k1/8/8/8/3q4/7n/6PP/5R1K b - - 0 1",
+                "hint_en": "The white king is already hemmed in by its own men; persuade one more of them to close the last door.",
+                "hint_nl": "De witte koning zit al opgesloten door zijn eigen stukken; dwing er nog één om de laatste deur dicht te doen.",
+                "solution": [
+                    [
+                        "Qg1+",
+                        "Rxg1",
+                        "Nf2#"
+                    ]
+                ],
+                "title_en": "Buried Alive",
+                "title_nl": "Levend begraven",
+                "perspective": "black"
+            },
+            "resource": "82196805072079665058339779905907159283087241336153304448440658051682925948185",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "only-checks"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T14:42:23.980Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 21,
+    "fields": {
+        "category": 1,
+        "fen": "r1b1nr2/ppp1kppp/4p3/4P3/3Q4/8/P2B1PPP/3R2K1 w - - 0 1",
+        "position": "r1b1nr2/ppp1kppp/4p3/4P3/3Q4/8/P2B1PPP/3R2K1 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "d4d8": {
+                    "end": false,
+                    "san": "Qd8+",
+                    "replies": {
+                        "e7d8": {
+                            "san": "Kxd8",
+                            "moves": {
+                                "d2g5": {
+                                    "end": true,
+                                    "san": "Bg5#"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "Royal invitation",
+        "title_nl": "Koninklijke uitnodiging",
+        "hint_en": "Lure the black king onto the d-file, where a battery is waiting.",
+        "hint_nl": "Lok de zwarte koning naar de d-lijn, waar een batterij klaarstaat.",
+        "tags": "[\"opposite-coloured-bishops\", \"crowded-board\", \"king-in-centre\", \"sacrifice\", \"only-checks\", \"discovered-check\", \"double-check\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "r1b1nr2/ppp1kppp/4p3/4P3/3Q4/8/P2B1PPP/3R2K1 w - - 0 1",
+                "hint_en": "Lure the black king onto the d-file, where a battery is waiting.",
+                "hint_nl": "Lok de zwarte koning naar de d-lijn, waar een batterij klaarstaat.",
+                "solution": [
+                    [
+                        "Qd8+",
+                        "Kxd8",
+                        "Bg5#"
+                    ]
+                ],
+                "title_en": "Royal invitation",
+                "title_nl": "Koninklijke uitnodiging",
+                "perspective": "white"
+            },
+            "resource": "94734485058907365998977666785510826465959459794942577214977187653604275053678",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "double-check"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T14:58:37.861Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 22,
+    "fields": {
+        "category": 1,
+        "fen": "8/3q4/3p2p1/3P2P1/1p6/pPp1k3/P1P4P/NB5K b - - 0 1",
+        "position": "8/3q4/3p2p1/3P2P1/1p6/pPp1k3/P1P4P/NB5K b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "e3f2": {
+                    "end": false,
+                    "san": "Kf2",
+                    "replies": {
+                        "h2h3": {
+                            "san": "h3",
+                            "moves": {
+                                "d7h3": {
+                                    "end": true,
+                                    "san": "Qxh3#"
+                                }
+                            }
+                        },
+                        "h2h4": {
+                            "san": "h4",
+                            "moves": {
+                                "d7h3": {
+                                    "end": true,
+                                    "san": "Qh3#"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "",
+        "title_nl": "",
+        "hint_en": "",
+        "hint_nl": "",
+        "tags": "[\"crowded-board\", \"quiet-key\", \"zugzwang\", \"king-joins\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "8/3q4/3p2p1/3P2P1/1p6/pPp1k3/P1P4P/NB5K b - - 0 1",
+                "hint_en": "",
+                "hint_nl": "",
+                "solution": [
+                    [
+                        "Kf2",
+                        "h3",
+                        "Qxh3#"
+                    ],
+                    [
+                        "Kf2",
+                        "h4",
+                        "Qh3#"
+                    ]
+                ],
+                "title_en": "",
+                "title_nl": "",
+                "perspective": "black"
+            },
+            "resource": "64950682849386187423258459075941539547602208318919973910080791108486174372905",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "king-joins"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T15:04:14.558Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 23,
+    "fields": {
+        "category": 1,
+        "fen": "2r2bk1/pp1R4/1q2p1p1/8/4N3/8/PP3PPP/6K1 w - - 0 1",
+        "position": "2r2bk1/pp1R4/1q2p1p1/8/4N3/8/PP3PPP/6K1 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "e4f6": {
+                    "end": false,
+                    "san": "Nf6+",
+                    "replies": {
+                        "g8h8": {
+                            "san": "Kh8",
+                            "moves": {
+                                "d7h7": {
+                                    "end": true,
+                                    "san": "Rh7#"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "Into the Corner",
+        "title_nl": "De hoek in",
+        "hint_en": "Your rook already controls the seventh rank, so drive the king to the edge first.",
+        "hint_nl": "Je toren beheerst de zevende rij al, dus jaag de koning eerst naar de rand.",
+        "tags": "[\"material-down\", \"crowded-board\", \"only-checks\", \"arabian\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "2r2bk1/pp1R4/1q2p1p1/8/4N3/8/PP3PPP/6K1 w - - 0 1",
+                "hint_en": "Your rook already controls the seventh rank, so drive the king to the edge first.",
+                "hint_nl": "Je toren beheerst de zevende rij al, dus jaag de koning eerst naar de rand.",
+                "solution": [
+                    [
+                        "Nf6+",
+                        "Kh8",
+                        "Rh7#"
+                    ]
+                ],
+                "title_en": "Into the Corner",
+                "title_nl": "De hoek in",
+                "perspective": "white"
+            },
+            "resource": "86447262081074941712678733003359435923809500192095035276487058265819365278356",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "arabian"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T15:14:58.162Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 24,
+    "fields": {
+        "category": 3,
+        "fen": "7k/5K1p/5N2/8/8/N7/8/8 w - - 0 1",
+        "position": "7k/5K1p/5N2/8/8/N7/8/8 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "a3c4": {
+                    "end": false,
+                    "san": "Nc4",
+                    "replies": {
+                        "h7h5": {
+                            "san": "h5",
+                            "moves": {
+                                "c4e5": {
+                                    "end": false,
+                                    "san": "Ne5",
+                                    "replies": {
+                                        "h5h4": {
+                                            "san": "h4",
+                                            "moves": {
+                                                "e5g6": {
+                                                    "end": true,
+                                                    "san": "Ng6#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "h7h6": {
+                            "san": "h6",
+                            "moves": {
+                                "c4e5": {
+                                    "end": false,
+                                    "san": "Ne5",
+                                    "replies": {
+                                        "h6h5": {
+                                            "san": "h5",
+                                            "moves": {
+                                                "e5g6": {
+                                                    "end": true,
+                                                    "san": "Ng6#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "The Long Walk",
+        "title_nl": "De lange wandeling",
+        "hint_en": "Black can only push the pawn, so bring the distant knight within reach of the key mating square without loosening the net.",
+        "hint_nl": "Zwart kan alleen nog met de pion spelen, dus breng het verre paard naar het matveld zonder het net rond de koning los te laten.",
+        "tags": "[\"minor-pieces-only\", \"few-pieces\", \"quiet-key\", \"mate-by-knight\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "7k/5K1p/5N2/8/8/N7/8/8 w - - 0 1",
+                "hint_en": "Black can only push the pawn, so bring the distant knight within reach of the key mating square without loosening the net.",
+                "hint_nl": "Zwart kan alleen nog met de pion spelen, dus breng het verre paard naar het matveld zonder het net rond de koning los te laten.",
+                "solution": [
+                    [
+                        "Nc4",
+                        "h6",
+                        "Ne5",
+                        "h5",
+                        "Ng6#"
+                    ],
+                    [
+                        "Nc4",
+                        "h5",
+                        "Ne5",
+                        "h4",
+                        "Ng6#"
+                    ]
+                ],
+                "title_en": "The Long Walk",
+                "title_nl": "De lange wandeling",
+                "perspective": "white"
+            },
+            "resource": "47346150622254214783602778126974528106672229984950742374013201075228315696463",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces",
+                "zugzwang"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "zugzwang"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T15:19:38.852Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 25,
+    "fields": {
+        "category": 3,
+        "fen": "k7/8/1q6/8/8/8/5nPP/5RK1 b - - 0 1",
+        "position": "k7/8/1q6/8/8/8/5nPP/5RK1 b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "f2h3": {
+                    "end": false,
+                    "san": "Nh3+",
+                    "replies": {
+                        "g1h1": {
+                            "san": "Kh1",
+                            "moves": {
+                                "b6g1": {
+                                    "end": false,
+                                    "san": "Qg1+",
+                                    "replies": {
+                                        "f1g1": {
+                                            "san": "Rxg1",
+                                            "moves": {
+                                                "h3f2": {
+                                                    "end": true,
+                                                    "san": "Nf2#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "Corner Trap",
+        "title_nl": "Hoektrap",
+        "hint_en": "Drive the king into the corner with a check he cannot block, then let his own rook seal his last escape square.",
+        "hint_nl": "Jaag de koning met een schaak die niet te blokkeren is naar de hoek en laat daarna zijn eigen toren het laatste vluchtveld afsluiten.",
+        "tags": "[\"few-pieces\", \"only-checks\", \"discovered-check\", \"double-check\", \"mate-by-knight\", \"smothered\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "k7/8/1q6/8/8/8/5nPP/5RK1 b - - 0 1",
+                "hint_en": "Drive the king into the corner with a check he cannot block, then let his own rook seal his last escape square.",
+                "hint_nl": "Jaag de koning met een schaak die niet te blokkeren is naar de hoek en laat daarna zijn eigen toren het laatste vluchtveld afsluiten.",
+                "solution": [
+                    [
+                        "Nh3+",
+                        "Kh1",
+                        "Qg1+",
+                        "Rxg1",
+                        "Nf2#"
+                    ]
+                ],
+                "title_en": "Corner Trap",
+                "title_nl": "Hoektrap",
+                "perspective": "black"
+            },
+            "resource": "29726077103228827320666598671971082077060680407736755510173546792419255695787",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "double-check"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T16:00:54.241Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 26,
+    "fields": {
+        "category": 3,
+        "fen": "r2q1rk1/pp3p1p/4p3/1Q6/8/3B4/PB3PPP/5RK1 w - - 0 1",
+        "position": "r2q1rk1/pp3p1p/4p3/1Q6/8/3B4/PB3PPP/5RK1 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "d3h7": {
+                    "end": false,
+                    "san": "Bxh7+",
+                    "replies": {
+                        "g8h7": {
+                            "san": "Kxh7",
+                            "moves": {
+                                "b5h5": {
+                                    "end": false,
+                                    "san": "Qh5+",
+                                    "replies": {
+                                        "h7g8": {
+                                            "san": "Kg8",
+                                            "moves": {
+                                                "h5h8": {
+                                                    "end": true,
+                                                    "san": "Qh8#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "The Long Diagonal Strikes",
+        "title_nl": "De lange diagonaal slaat toe",
+        "hint_en": "The dark-squared bishop already controls g7 and h8, so the black king may have nowhere to run once its pawn shield is torn open.",
+        "hint_nl": "De zwartveldige loper beheerst g7 en h8 al, dus de zwarte koning kan nergens heen zodra zijn pionnenschild is opengebroken.",
+        "tags": "[\"two-bishops\", \"crowded-board\", \"sacrifice\", \"only-checks\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "r2q1rk1/pp3p1p/4p3/1Q6/8/3B4/PB3PPP/5RK1 w - - 0 1",
+                "hint_en": "The dark-squared bishop already controls g7 and h8, so the black king may have nowhere to run once its pawn shield is torn open.",
+                "hint_nl": "De zwartveldige loper beheerst g7 en h8 al, dus de zwarte koning kan nergens heen zodra zijn pionnenschild is opengebroken.",
+                "solution": [
+                    [
+                        "Bxh7+",
+                        "Kxh7",
+                        "Qh5+",
+                        "Kg8",
+                        "Qh8#"
+                    ]
+                ],
+                "title_en": "The Long Diagonal Strikes",
+                "title_nl": "De lange diagonaal slaat toe",
+                "perspective": "white"
+            },
+            "resource": "72237132000753312506356343424013770886510868185490973107845063232274283661124",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board",
+                "two-bishops"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "two-bishops",
+                "sacrifice"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T16:03:18.103Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 27,
+    "fields": {
+        "category": 3,
+        "fen": "r3k3/1pp2bpp/p7/8/7b/q6N/PPP2PPP/5KR1 b q - 0 1",
+        "position": "r3k3/1pp2bpp/p7/8/7b/q6N/PPP2PPP/5KR1 b q -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "f7c4": {
+                    "end": false,
+                    "san": "Bc4+",
+                    "replies": {
+                        "f1e1": {
+                            "san": "Ke1",
+                            "moves": {
+                                "a3e3": {
+                                    "end": false,
+                                    "san": "Qe3+",
+                                    "replies": {
+                                        "e1d1": {
+                                            "san": "Kd1",
+                                            "moves": {
+                                                "a8d8": {
+                                                    "end": true,
+                                                    "san": "Rd8#"
+                                                },
+                                                "e8c8": {
+                                                    "end": true,
+                                                    "san": "O-O-O#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "The Pawn That Cannot Move",
+        "title_nl": "De pion die niet mag slaan",
+        "hint_en": "Drive the king to the square where its own f-pawn becomes pinned, and remember that your king has not moved yet.",
+        "hint_nl": "Jaag de koning naar het veld waar zijn eigen f-pion gepend raakt, en vergeet niet dat je eigen koning nog niet heeft bewogen.",
+        "tags": "[\"two-bishops\", \"crowded-board\", \"only-checks\", \"castling\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "r3k3/1pp2bpp/p7/8/7b/q6N/PPP2PPP/5KR1 b q - 0 1",
+                "hint_en": "Drive the king to the square where its own f-pawn becomes pinned, and remember that your king has not moved yet.",
+                "hint_nl": "Jaag de koning naar het veld waar zijn eigen f-pion gepend raakt, en vergeet niet dat je eigen koning nog niet heeft bewogen.",
+                "solution": [
+                    [
+                        "Bc4+",
+                        "Ke1",
+                        "Qe3+",
+                        "Kd1",
+                        "O-O-O#"
+                    ]
+                ],
+                "title_en": "The Pawn That Cannot Move",
+                "title_nl": "De pion die niet mag slaan",
+                "perspective": "black"
+            },
+            "resource": "21001048397707777339939261653057598512808054174359943609657391002163699601594",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "castling",
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "castling"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T16:09:47.288Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 28,
+    "fields": {
+        "category": 3,
+        "fen": "2rr2k1/p4ppp/1q6/8/8/3Q4/P2R1PPP/3R3K w - - 0 1",
+        "position": "2rr2k1/p4ppp/1q6/8/8/3Q4/P2R1PPP/3R3K w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "d3d8": {
+                    "end": false,
+                    "san": "Qxd8+",
+                    "replies": {
+                        "b6d8": {
+                            "san": "Qxd8",
+                            "moves": {
+                                "d2d8": {
+                                    "end": false,
+                                    "san": "Rxd8+",
+                                    "replies": {
+                                        "c8d8": {
+                                            "san": "Rxd8",
+                                            "moves": {
+                                                "d1d8": {
+                                                    "end": true,
+                                                    "san": "Rxd8#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "c8d8": {
+                            "san": "Rxd8",
+                            "moves": {
+                                "d2d8": {
+                                    "end": false,
+                                    "san": "Rxd8+",
+                                    "replies": {
+                                        "b6d8": {
+                                            "san": "Qxd8",
+                                            "moves": {
+                                                "d1d8": {
+                                                    "end": true,
+                                                    "san": "Rxd8#"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "title_en": "Three Against Two",
+        "title_nl": "Drie tegen twee",
+        "hint_en": "Count the attackers and defenders on the open file, and remember that Black's own pawns keep the king locked in.",
+        "hint_nl": "Tel de aanvallers en verdedigers op de open lijn, en bedenk dat de eigen pionnen de zwarte koning opsluiten.",
+        "tags": "[\"crowded-board\", \"only-checks\", \"back-rank\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "2rr2k1/p4ppp/1q6/8/8/3Q4/P2R1PPP/3R3K w - - 0 1",
+                "hint_en": "Count the attackers and defenders on the open file, and remember that Black's own pawns keep the king locked in.",
+                "hint_nl": "Tel de aanvallers en verdedigers op de open lijn, en bedenk dat de eigen pionnen de zwarte koning opsluiten.",
+                "solution": [
+                    [
+                        "Qxd8+",
+                        "Rxd8",
+                        "Rxd8+",
+                        "Qxd8",
+                        "Rxd8#"
+                    ],
+                    [
+                        "Qxd8+",
+                        "Qxd8",
+                        "Rxd8+",
+                        "Rxd8",
+                        "Rxd8#"
+                    ]
+                ],
+                "title_en": "Three Against Two",
+                "title_nl": "Drie tegen twee",
+                "perspective": "white"
+            },
+            "resource": "77961015634919824945643814637573796745840735464993378616285518646767283128166",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "back-rank"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T16:10:29.023Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 29,
+    "fields": {
+        "category": 4,
+        "fen": "4k3/p2n4/8/8/8/8/7P/3R1BK1 w - - 0 1",
+        "position": "4k3/p2n4/8/8/8/8/7P/3R1BK1 w - -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "f1b5": {
+                    "end": true,
+                    "pin": {
+                        "pinned": "d7",
+                        "pinner": "b5",
+                        "target": "e8",
+                        "pinned_piece": "knight",
+                        "target_piece": "king"
+                    },
+                    "san": "Bb5"
+                }
+            }
+        },
+        "title_en": "Knight on the Diagonal",
+        "title_nl": "Paard op de diagonaal",
+        "hint_en": "The black knight is already watched by your rook and only defended by the king, so freeze it in place.",
+        "hint_nl": "Het zwarte paard wordt al door je toren aangevallen en alleen door de koning gedekt, dus zet het vast.",
+        "tags": "[\"few-pieces\", \"king-in-centre\", \"pin-against-king\", \"pin-on-diagonal\", \"pinned-by-bishop\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "4k3/p2n4/8/8/8/8/7P/3R1BK1 w - - 0 1",
+                "hint_en": "The black knight is already watched by your rook and only defended by the king, so freeze it in place.",
+                "hint_nl": "Het zwarte paard wordt al door je toren aangevallen en alleen door de koning gedekt, dus zet het vast.",
+                "solution": [
+                    [
+                        "Bb5",
+                        "Ke7",
+                        "Bxd7"
+                    ],
+                    [
+                        "Bb5",
+                        "Kd8",
+                        "Bxd7"
+                    ],
+                    [
+                        "Bb5",
+                        "a6",
+                        "Bxd7+"
+                    ]
+                ],
+                "title_en": "Knight on the Diagonal",
+                "title_nl": "Paard op de diagonaal",
+                "perspective": "white"
+            },
+            "resource": "78640139692736630851695406261244168199168058556118704435083556705896232367846",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "pin-against-king"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T16:13:05.450Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 30,
+    "fields": {
+        "category": 4,
+        "fen": "8/4b1k1/8/8/8/8/r4N1P/6K1 b - - 0 1",
+        "position": "8/4b1k1/8/8/8/8/r4N1P/6K1 b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "e7c5": {
+                    "end": true,
+                    "pin": {
+                        "pinned": "f2",
+                        "pinner": "c5",
+                        "target": "g1",
+                        "pinned_piece": "knight",
+                        "target_piece": "king"
+                    },
+                    "san": "Bc5"
+                }
+            }
+        },
+        "title_en": "The Knight Is Stuck",
+        "title_nl": "Het paard zit vast",
+        "hint_en": "The white knight is already attacked once; bring a second attacker that also nails it to its king.",
+        "hint_nl": "Het witte paard staat al één keer aangevallen; zet er een tweede aanvaller bij die het ook aan de koning vastpint.",
+        "tags": "[\"few-pieces\", \"pin-against-king\", \"pin-on-diagonal\", \"pinned-by-bishop\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "8/4b1k1/8/8/8/8/r4N1P/6K1 b - - 0 1",
+                "hint_en": "The white knight is already attacked once; bring a second attacker that also nails it to its king.",
+                "hint_nl": "Het witte paard staat al één keer aangevallen; zet er een tweede aanvaller bij die het ook aan de koning vastpint.",
+                "solution": [
+                    [
+                        "Bc5",
+                        "Kf1",
+                        "Rxf2+"
+                    ],
+                    [
+                        "Bc5",
+                        "Kh1",
+                        "Rxf2"
+                    ],
+                    [
+                        "Bc5",
+                        "h4",
+                        "Rxf2"
+                    ]
+                ],
+                "title_en": "The Knight Is Stuck",
+                "title_nl": "Het paard zit vast",
+                "perspective": "black"
+            },
+            "resource": "38000105007349935127520195328980657425119434908323903298589599280635173756791",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "few-pieces"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "few-pieces",
+                "pin-on-diagonal"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T16:14:10.739Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 31,
+    "fields": {
+        "category": 4,
+        "fen": "r1b1k2r/pppp1ppp/5n2/4q3/8/1R6/PPPNBPPP/3QK2R w K - 0 1",
+        "position": "r1b1k2r/pppp1ppp/5n2/4q3/8/1R6/PPPNBPPP/3QK2R w K -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "b3e3": {
+                    "end": true,
+                    "pin": {
+                        "pinned": "e5",
+                        "pinner": "e3",
+                        "target": "e8",
+                        "pinned_piece": "queen",
+                        "target_piece": "king"
+                    },
+                    "san": "Re3"
+                }
+            }
+        },
+        "title_en": "The Open File",
+        "title_nl": "De open lijn",
+        "hint_en": "The black queen and king share a file with nothing in between, so place a well-protected piece on that file.",
+        "hint_nl": "De zwarte dame en koning staan op dezelfde lijn zonder iets ertussen, dus zet daar een goed gedekt stuk neer.",
+        "tags": "[\"crowded-board\", \"king-in-centre\", \"pin-against-king\", \"pin-on-file\", \"pinned-by-rook\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "r1b1k2r/pppp1ppp/5n2/4q3/8/1R6/PPPNBPPP/3QK2R w K - 0 1",
+                "hint_en": "The black queen and king share a file with nothing in between, so place a well-protected piece on that file.",
+                "hint_nl": "De zwarte dame en koning staan op dezelfde lijn zonder iets ertussen, dus zet daar een goed gedekt stuk neer.",
+                "solution": [
+                    [
+                        "Re3",
+                        "Qxe3",
+                        "fxe3",
+                        "d6",
+                        "O-O"
+                    ],
+                    [
+                        "Re3",
+                        "Ne4",
+                        "Nxe4"
+                    ]
+                ],
+                "title_en": "The Open File",
+                "title_nl": "De open lijn",
+                "perspective": "white"
+            },
+            "resource": "96681283274680029564421974642825962278097361410152299770718367167013147736272",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "castling"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T16:20:48.134Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 32,
+    "fields": {
+        "category": 4,
+        "fen": "2bq1rk1/pp2pppp/3p4/8/3NP3/5P2/PP4PP/RN4KR b - - 0 1",
+        "position": "2bq1rk1/pp2pppp/3p4/8/3NP3/5P2/PP4PP/RN4KR b - -",
+        "perspective": "black",
+        "solution": {
+            "moves": {
+                "d8b6": {
+                    "end": true,
+                    "pin": {
+                        "pinned": "d4",
+                        "pinner": "b6",
+                        "target": "g1",
+                        "pinned_piece": "knight",
+                        "target_piece": "king"
+                    },
+                    "san": "Qb6"
+                }
+            }
+        },
+        "title_en": "",
+        "title_nl": "",
+        "hint_en": "",
+        "hint_nl": "",
+        "tags": "[\"crowded-board\", \"pin-against-king\", \"pin-on-diagonal\", \"pinned-by-queen\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "2bq1rk1/pp2pppp/3p4/8/3NP3/5P2/PP4PP/RN4KR b - - 0 1",
+                "hint_en": "",
+                "hint_nl": "",
+                "solution": [
+                    [
+                        "Qb6",
+                        "Kf1",
+                        "Qxd4"
+                    ],
+                    [
+                        "Qb6",
+                        "Nc3",
+                        "Qxd4+"
+                    ]
+                ],
+                "title_en": "",
+                "title_nl": "",
+                "perspective": "black"
+            },
+            "resource": "44066967183104814777246517488611797943201113919676683858423620189669550524729",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "pinned-by-queen"
+            ],
+            "requested_perspective": "black"
+        },
+        "created_at": "2026-11-22T16:46:43.665Z"
+    }
+},
+{
+    "model": "puzzles.chesspuzzle",
+    "pk": 33,
+    "fields": {
+        "category": 4,
+        "fen": "r1b1kb1r/pp1q1ppp/4pn2/2p5/3P4/2N1PN2/PPP2PPP/R2QKB1R w KQkq - 0 1",
+        "position": "r1b1kb1r/pp1q1ppp/4pn2/2p5/3P4/2N1PN2/PPP2PPP/R2QKB1R w KQkq -",
+        "perspective": "white",
+        "solution": {
+            "moves": {
+                "f1b5": {
+                    "end": true,
+                    "pin": {
+                        "pinned": "d7",
+                        "pinner": "b5",
+                        "target": "e8",
+                        "pinned_piece": "queen",
+                        "target_piece": "king"
+                    },
+                    "san": "Bb5"
+                }
+            }
+        },
+        "title_en": "Development with a Bite",
+        "title_nl": "Ontwikkelen met venijn",
+        "hint_en": "The black queen stands on the same diagonal as her king, and one of your undeveloped pieces can exploit that.",
+        "hint_nl": "De zwarte dame staat op dezelfde diagonaal als haar koning, en een van je onontwikkelde stukken kan daarvan profiteren.",
+        "tags": "[\"crowded-board\", \"king-in-centre\", \"pin-against-king\", \"pin-on-diagonal\", \"pinned-by-bishop\"]",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "generation": {
+            "proposal": {
+                "fen": "r1b1kb1r/pp1q1ppp/4pn2/2p5/3P4/2N1PN2/PPP2PPP/R2QKB1R w KQkq - 0 1",
+                "hint_en": "The black queen stands on the same diagonal as her king, and one of your undeveloped pieces can exploit that.",
+                "hint_nl": "De zwarte dame staat op dezelfde diagonaal als haar koning, en een van je onontwikkelde stukken kan daarvan profiteren.",
+                "solution": [
+                    [
+                        "Bb5",
+                        "Qxb5",
+                        "Nxb5",
+                        "Kd7",
+                        "O-O"
+                    ],
+                    [
+                        "Bb5",
+                        "Qc6",
+                        "Bxc6+",
+                        "bxc6",
+                        "O-O"
+                    ]
+                ],
+                "title_en": "Development with a Bite",
+                "title_nl": "Ontwikkelen met venijn",
+                "perspective": "white"
+            },
+            "resource": "99069042643564369437319043990052716716860614945452287848473334398479773473376",
+            "served_by": "claude-opus-5-5",
+            "manual_tags": [
+                "crowded-board"
+            ],
+            "llm_was_right": true,
+            "requested_tags": [
+                "crowded-board",
+                "castling"
+            ],
+            "requested_perspective": "white"
+        },
+        "created_at": "2026-11-22T16:54:58.829Z"
+    }
+}
 ]
