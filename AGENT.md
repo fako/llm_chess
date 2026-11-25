@@ -80,9 +80,16 @@ The installation gives this workspace an SMTP server to send email through. It i
 
 ## How domains resolve
 
-This runtime answers to more than one name, and which one to use depends on where the caller is.
+The installation decides the names this project is reached by, and they differ per installation. Never write a domain, zone or scheme into code or settings: read them from the environment the installation gives the runtimes it starts.
 
-* **A browser** reaches the workspace's primary runtime at `<scheme>://{{ workspace.slug }}.<zone>/`, through the installation's edge. The zone is `localhost` on a laptop and a real domain on a hub or a vps. Another runtime is only reachable from a browser once it is exposed, as `<label>-{{ workspace.slug }}.<zone>`.
-* **Another container** n8n, or another workspace's runtime uses `http://runtimes.workspaces:7000/r/{{ workspace.slug }}/<runtime>/`. The workspace and runtime travel in the path, not the hostname, so only that one name has to resolve. It is the same address on every installation, so use it in anything that might move, such as workflows.
-* **Never call `{{ workspace.slug }}.localhost` from inside a container.** It does resolve, to the *calling* container's own loopback, so the mistake surfaces as a refused connection rather than an unknown host. This is the confusing one.
+| Variable | Given to | Holds | Use it for |
+|---|---|---|---|
+| `PUBLIC_URL` | web and worker runtimes | `<scheme>://<name>.<zone>`, the address a browser reaches this workspace at | absolute URLs: links in emails, redirects, callbacks |
+| `PUBLIC_HOSTS` | web runtimes | every public name of that runtime, comma-separated | `ALLOWED_HOSTS` |
+| `PUBLIC_ORIGINS` | web runtimes | the same names with their scheme, comma-separated | `CSRF_TRUSTED_ORIGINS` |
+
+* **They only hold public names.** Add `127.0.0.1` and `.localhost` to `ALLOWED_HOSTS` yourself. That covers the internal `chess.<runtime>.localhost` name the `/r/` router below uses.
+* **`PUBLIC_URL` is absent while no runtime is primary**, so code that builds absolute URLs has to handle that.
+* **Another container** n8n, or another workspace's runtime uses `http://runtimes.workspaces:7000/r/chess/<runtime>/`. The workspace and runtime travel in the path, not the hostname, so only that one name has to resolve. It is the same address on every installation, so use it in anything that might move, such as workflows.
+* **Never call `chess.localhost` from inside a container.** It does resolve, to the *calling* container's own loopback, so the mistake surfaces as a refused connection rather than an unknown host. This is the confusing one.
 * **Names are management's.** Do not hand-write nginx server blocks: they are generated and will be overwritten on the next `invoke runtimes.apply`.

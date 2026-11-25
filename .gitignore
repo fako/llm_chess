@@ -20,6 +20,7 @@
 .claude/
 .claude.json
 .vscode-server/
+.dotnet/
 
 # Python exclusions
 __pycache__
