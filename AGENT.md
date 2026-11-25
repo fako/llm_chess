@@ -61,6 +61,23 @@ When you make a change that needs configure:
 
 Configure is safe to run again and again: ports, domains and existing `.env` values are kept, and only runtimes whose configuration changed are restarted. Only removing a runtime, or changing its `type`, is destructive: that runtime is deleted, and a type change creates it again with a new port.
 
+## Sending email
+
+The installation gives this workspace an SMTP server to send email through. It is in the workspace's `.env`, so runtimes and your shell both have it:
+
+| Variable | Holds |
+|---|---|
+| `EMAIL_HOST` | The SMTP server's host name |
+| `EMAIL_PORT` | The port it accepts mail on |
+| `EMAIL_HOST_USER` | The user to sign in with |
+| `EMAIL_HOST_PASSWORD` | The password to sign in with |
+
+* **The names are Django's own settings.** Read each into the setting of the same name in the settings module. Never write a server, user or password into code or settings.
+* **They are absent when the installation has no server**, as on most development machines. Fall back to the console backend (`django.core.mail.backends.console.EmailBackend`) then, so sending email never crashes the project.
+* **The encryption follows from the port.** Set `EMAIL_USE_TLS` for 587 and `EMAIL_USE_SSL` for 465, never both.
+* **Do not list them under `environment` in `workspace.json`.** The installation sets them itself, and `configure` refuses a manifest that asks for them.
+* **Your human sets the server, not you.** Running processes read the `.env` when they start, so a runtime has to be restarted after the server changes. Ask your human for that.
+
 ## How domains resolve
 
 This runtime answers to more than one name, and which one to use depends on where the caller is.

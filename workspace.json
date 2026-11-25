@@ -22,10 +22,7 @@
         }
     },
     "environment": [
-        "ACCOUNTS_EMAIL_VERIFICATION",
-        "ANTHROPIC_API_KEY",
-        "DJANGO_DEBUG",
-        "DJANGO_SECRET_KEY"
+        "ANTHROPIC_API_KEY"
     ],
     "command_sets": {
         "statics": [
