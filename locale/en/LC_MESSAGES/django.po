@@ -80,6 +80,48 @@ msgstr "Use your new password the next time you log in."
 msgid "accounts.password_changed.back"
 msgstr "Back to my results"
 
+msgid "accounts.login.forgot_password"
+msgstr "Forgot your password?"
+
+msgid "accounts.password_reset.title"
+msgstr "Reset password"
+
+msgid "accounts.password_reset.intro"
+msgstr "Enter the email address of your account and we'll send you a link to choose a new password."
+
+msgid "accounts.password_reset.submit"
+msgstr "Send link"
+
+msgid "accounts.password_reset.back"
+msgstr "Back to log in"
+
+msgid "accounts.password_reset_sent.title"
+msgstr "Check your email"
+
+msgid "accounts.password_reset_sent.intro"
+msgstr "If an account uses that email address, we sent it a link to choose a new password. The link works for one day."
+
+msgid "accounts.password_reset_confirm.title"
+msgstr "Choose a new password"
+
+msgid "accounts.password_reset_confirm.submit"
+msgstr "Save password"
+
+msgid "accounts.password_reset_confirm.invalid"
+msgstr "This link doesn't work anymore. It was used already or it has expired."
+
+msgid "accounts.password_reset_confirm.again"
+msgstr "Request a new link"
+
+msgid "accounts.password_reset_done.title"
+msgstr "Password changed"
+
+msgid "accounts.password_reset_done.intro"
+msgstr "You can log in with your new password now."
+
+msgid "accounts.password_reset_done.login"
+msgstr "Log in"
+
 msgid "accounts.verify_email.title"
 msgstr "Check your email"
 
@@ -127,6 +169,12 @@ msgstr "Confirm your email address for Chess puzzles"
 
 msgid "accounts.mail.validation.body"
 msgstr "Welcome to Chess puzzles!\n\nOpen this link to confirm your email address and finish signing up:\n\n%(url)s"
+
+msgid "accounts.mail.password_reset.subject"
+msgstr "Reset your password for Chess puzzles"
+
+msgid "accounts.mail.password_reset.body"
+msgstr "Hi %(username)s,\n\nSomeone asked to reset the password of your Chess puzzles account. Open this link to choose a new password:\n\n%(url)s\n\nThe link works for one day. If you didn't ask for this, you can ignore this email and your password stays the same."
 
 msgid "puzzles.home.heading"
 msgstr "Choose your puzzles"

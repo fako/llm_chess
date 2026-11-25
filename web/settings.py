@@ -29,6 +29,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
+# The edge tells through X-Forwarded-Proto whether a visitor came in over https, so links in emails get that scheme
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -153,7 +155,7 @@ USE_TZ = True
 # Python social auth
 # Users log in and sign up with a username and password through the "username" backend (see accounts/pipeline.py).
 
-ACCOUNTS_EMAIL_VERIFICATION = os.environ.get("ACCOUNTS_EMAIL_VERIFICATION", "false").strip().lower() in \
+ACCOUNTS_EMAIL_VERIFICATION = os.environ.get("ACCOUNTS_EMAIL_VERIFICATION", "true").strip().lower() in \
     ("1", "true", "yes", "on")
 
 SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
@@ -181,15 +183,26 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.load_extra_data",
 )
 
-# Email is only sent to verify addresses. Without an EMAIL_HOST mails are printed to the log.
+# Email
+# The installation puts its SMTP server in the .env. Without one, mails are printed to the log instead of sent.
+# The encryption follows from the port: STARTTLS on 587 and SSL on 465.
+
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST else \
-    "django.core.mail.backends.console.EmailBackend"
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT") or 587)
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").strip().lower() in ("1", "true", "yes", "on")
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
+EMAIL_USE_TLS = EMAIL_PORT == 587
+EMAIL_USE_SSL = EMAIL_PORT == 465
+EMAIL_TIMEOUT = 10
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST else \
+    "django.core.mail.backends.console.EmailBackend"
+# Links in emails point at PUBLIC_URL, the address the site is known by (see accounts.mail.public_url).
+# Without it, as on most development machines, they point at the host the request came in on.
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "")
+# Mail comes from a noreply address, not from the account that signs in with the SMTP server
+DEFAULT_FROM_EMAIL = "Fako Berkers <noreply@mail.fakoberkers.nl>"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # seconds a password reset link stays valid
 
 
 STATIC_URL = "static/"

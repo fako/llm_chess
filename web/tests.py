@@ -64,7 +64,7 @@ class TestTranslations(TestCase):
         self.assertContains(self.client.get("/en/accounts/login/"), "img/flags/nl.")
 
     def test_link_preview(self):
-        response = self.client.get("/nl/accounts/login/", headers={"X-Forwarded-Proto": "https"})
+        response = self.client.get("/nl/accounts/login/", headers={"Host": "testserver", "X-Forwarded-Proto": "https"})
         self.assertContains(response, '<meta property="og:title" content="Schaakpuzzeltjes">')
         self.assertContains(response, 'content="Gratis schaakpuzzels van allerlei soorten"')
         self.assertContains(response, 'content="https://testserver/static/img/promo.')

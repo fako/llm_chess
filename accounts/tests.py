@@ -1,5 +1,7 @@
 import re
+from email.utils import parseaddr
 
+from django.conf import settings
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -60,14 +62,19 @@ class TestLogin(TestCase):
 
 class TestSignup(TestCase):
 
-    def test_signup(self):
+    def test_email_verification_is_on_by_default(self):
+        self.assertTrue(settings.ACCOUNTS_EMAIL_VERIFICATION)
+        self.assertTrue(settings.SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION)
+
+    @override_settings(SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION=False)
+    def test_signup_without_email_verification(self):
         response = self.client.post("/en/accounts/signup/", SIGNUP)
         self.assertRedirects(response, "/en/")
         user = User.objects.get(username="newcomer")
         self.assertEqual(user.email, "newcomer@example.com")
         self.assertTrue(user.check_password("a-long-passphrase-42"))
         self.assertTrue(UserSocialAuth.objects.filter(user=user, provider="username", uid="newcomer").exists())
-        self.assertEqual(len(mail.outbox), 0, "email verification is off by default")
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_invalid_signup(self):
         User.objects.create_user("taken", email="taken@example.com", password="secret-password")
@@ -79,7 +86,7 @@ class TestSignup(TestCase):
         self.assertContains(response, "didn’t match")
         self.assertEqual(User.objects.count(), 1)
 
-    @override_settings(SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION=True)
+    @override_settings(PUBLIC_URL="https://chess.example.com/")
     def test_signup_with_email_verification(self):
         response = self.client.post("/en/accounts/signup/", SIGNUP)
         self.assertRedirects(response, "/en/accounts/verify-email/", fetch_redirect_response=False)
@@ -88,7 +95,7 @@ class TestSignup(TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ["newcomer@example.com"])
-        link = re.search(r"http://testserver(\S+)", mail.outbox[0].body).group(1)
+        link = re.search(r"https://chess\.example\.com(/\S+)", mail.outbox[0].body).group(1)
         self.assertNotIn("a-long-passphrase-42", str(Partial.objects.get().data), "no plain passwords are stored")
 
         response = self.client.get(link)  # PSA asks to confirm a resume that comes from outside
@@ -102,6 +109,64 @@ class TestSignup(TestCase):
         user = User.objects.get(username="newcomer")
         self.assertTrue(user.check_password("a-long-passphrase-42"))
         self.assertEqual(self.client.session["_auth_user_id"], str(user.pk))
+
+
+class TestPasswordReset(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user("solver", email="solver@example.com", password="secret-password")
+
+    def request_link(self, language="en", **headers) -> tuple[str, str]:
+        response = self.client.post(f"/{language}/accounts/password/reset/", {"email": "SOLVER@example.com"},
+                                    headers=headers)
+        self.assertRedirects(response, f"/{language}/accounts/password/reset/sent/")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["solver@example.com"])
+        return re.search(r"(https?://[^/\s]+)(/\S+)", mail.outbox[0].body).groups()
+
+    def test_login_links_to_reset(self):
+        self.assertContains(self.client.get("/en/accounts/login/"), 'href="/en/accounts/password/reset/"')
+        self.assertContains(self.client.get("/en/accounts/password/reset/"), "Send link")
+
+    @override_settings(PUBLIC_URL="https://chess.example.com/")
+    def test_reset_password(self):
+        base, link = self.request_link(host="internal.localhost")
+        self.assertEqual(base, "https://chess.example.com", "links point at PUBLIC_URL, not the host of the request")
+        message = mail.outbox[0]
+        self.assertEqual(message.subject, "Reset your password for Chess puzzles")
+        self.assertIn("Hi solver,", message.body)
+        self.assertEqual(parseaddr(message.from_email), ("Fako Berkers", "noreply@mail.fakoberkers.nl"))
+        self.assertNotIn("&#", message.body, "the plain text mail is not HTML escaped")
+
+        response = self.client.get(link)  # Django moves the token out of the URL into the session
+        response = self.client.get(response.url)
+        self.assertContains(response, "Choose a new password")
+        response = self.client.post(response.request["PATH_INFO"], {
+            "new_password1": "another-passphrase-7", "new_password2": "another-passphrase-7",
+        })
+        self.assertRedirects(response, "/en/accounts/password/reset/done/")
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("another-passphrase-7"))
+        self.assertContains(self.client.get("/en/accounts/password/reset/done/"), "Password changed")
+
+        response = self.client.get(link, follow=True)
+        self.assertContains(response, "doesn't work anymore", msg_prefix="links work only once")
+
+    @override_settings(PUBLIC_URL="")
+    def test_reset_link_without_public_url(self):
+        base, link = self.request_link("nl", host="testserver", x_forwarded_proto="https")
+        self.assertEqual(base, "https://testserver", "links follow the host and the scheme the edge reports")
+        self.assertTrue(link.startswith("/nl/accounts/password/reset/"))
+        self.assertEqual(mail.outbox[0].subject, "Herstel je wachtwoord voor Schaakpuzzeltjes")
+
+    def test_unknown_email_sends_nothing(self):
+        response = self.client.post("/en/accounts/password/reset/", {"email": "nobody@example.com"})
+        self.assertRedirects(response, "/en/accounts/password/reset/sent/", msg_prefix="no hint whether it exists")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_invalid_link(self):
+        response = self.client.get("/en/accounts/password/reset/MQ/wrong-token/")
+        self.assertContains(response, "Request a new link")
 
 
 class TestProfile(TestCase):

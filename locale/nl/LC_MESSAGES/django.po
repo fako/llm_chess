@@ -80,6 +80,48 @@ msgstr "Gebruik je nieuwe wachtwoord de volgende keer dat je inlogt."
 msgid "accounts.password_changed.back"
 msgstr "Terug naar mijn resultaten"
 
+msgid "accounts.login.forgot_password"
+msgstr "Wachtwoord vergeten?"
+
+msgid "accounts.password_reset.title"
+msgstr "Wachtwoord herstellen"
+
+msgid "accounts.password_reset.intro"
+msgstr "Vul het e-mailadres van je account in en we sturen je een link om een nieuw wachtwoord te kiezen."
+
+msgid "accounts.password_reset.submit"
+msgstr "Link versturen"
+
+msgid "accounts.password_reset.back"
+msgstr "Terug naar inloggen"
+
+msgid "accounts.password_reset_sent.title"
+msgstr "Controleer je e-mail"
+
+msgid "accounts.password_reset_sent.intro"
+msgstr "Als er een account bij dat e-mailadres hoort, hebben we er een link naartoe gestuurd om een nieuw wachtwoord te kiezen. De link werkt een dag lang."
+
+msgid "accounts.password_reset_confirm.title"
+msgstr "Kies een nieuw wachtwoord"
+
+msgid "accounts.password_reset_confirm.submit"
+msgstr "Wachtwoord opslaan"
+
+msgid "accounts.password_reset_confirm.invalid"
+msgstr "Deze link werkt niet meer. Hij is al gebruikt of hij is verlopen."
+
+msgid "accounts.password_reset_confirm.again"
+msgstr "Vraag een nieuwe link aan"
+
+msgid "accounts.password_reset_done.title"
+msgstr "Wachtwoord gewijzigd"
+
+msgid "accounts.password_reset_done.intro"
+msgstr "Je kunt nu inloggen met je nieuwe wachtwoord."
+
+msgid "accounts.password_reset_done.login"
+msgstr "Inloggen"
+
 msgid "accounts.verify_email.title"
 msgstr "Controleer je e-mail"
 
@@ -127,6 +169,12 @@ msgstr "Bevestig je e-mailadres voor Schaakpuzzeltjes"
 
 msgid "accounts.mail.validation.body"
 msgstr "Welkom bij Schaakpuzzeltjes!\n\nOpen deze link om je e-mailadres te bevestigen en je registratie af te ronden:\n\n%(url)s"
+
+msgid "accounts.mail.password_reset.subject"
+msgstr "Herstel je wachtwoord voor Schaakpuzzeltjes"
+
+msgid "accounts.mail.password_reset.body"
+msgstr "Hoi %(username)s,\n\nIemand heeft gevraagd om het wachtwoord van je account bij Schaakpuzzeltjes te herstellen. Open deze link om een nieuw wachtwoord te kiezen:\n\n%(url)s\n\nDe link werkt een dag lang. Heb je hier niet om gevraagd? Dan kun je deze e-mail negeren en blijft je wachtwoord hetzelfde."
 
 msgid "puzzles.home.heading"
 msgstr "Kies je puzzels"

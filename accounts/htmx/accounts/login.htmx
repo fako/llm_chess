@@ -8,6 +8,9 @@
     </div>
     {% with submit=_("accounts.login.submit") %}{% include "accounts/_form.htmx" %}{% endwith %}
     <p class="text-center text-sm text-muted">
+      <a href="{{ url('accounts:password_reset') }}" class="font-medium text-walnut underline underline-offset-4">{{ _("accounts.login.forgot_password") }}</a>
+    </p>
+    <p class="text-center text-sm text-muted">
       {{ _("accounts.login.new_here") }} <a href="{{ url('accounts:signup') }}" class="font-medium text-walnut underline underline-offset-4">{{ _("accounts.login.signup_link") }}</a>
     </p>
   </div>
