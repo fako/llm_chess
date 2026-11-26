@@ -36,12 +36,16 @@ Static files are gathered through collectstatic and end up in staticfiles/
 | `repository` | The SSH URL of the git remote, for example `git@github.com:owner/project.git` |
 | `branch` | The branch installations follow, or `null` for the remote's default |
 | `runtimes` | One entry per process: `type` (`django`, `celery`), `module` (the Python package), `primary` (answers to the project's own name), `expose` (a label that makes another runtime reachable as `<label>-{{ workspace.slug }}.<zone>`) and `configuration` for the rest, such as `{"workers": 4}` or `{"queues": ["default"]}` |
-| `environment` | Names of the environment variables the project needs set, without values |
+| `environment` | Names of the environment variables the project needs set, without values. `configure` asks for each one the installation has no value for yet; an empty answer is a value too. Install and deploy never wait for them, so the project has to cope with one being empty. Leave out what the installation sets itself, such as `DJANGO_SECRET_KEY`, `POSTGRES_*`, `EMAIL_*` and `PUBLIC_*` |
 | `command_sets` | Named lists of shell commands, run in the home directory with the virtualenv and `.env` loaded. They may ask for input |
+| `file_storages` | Directories in the home directory that hold files which are data rather than code, such as `["media"]` for uploads in Django's `MEDIA_ROOT`. Backups archive them next to the databases, and restoring a backup or syncing with production's data brings them back. Paths are relative to the home directory, and no part may start with a dot. Keep them out of git, and keep files that can be regenerated, such as `staticfiles/`, out of them |
 | `pre_install`, `post_install` | Command set name(s) run before runtimes first start, and after |
 | `pre_deploy`, `post_deploy` | Command set name(s) run on every update: before runtimes restart on the new code (while the old code still serves), and after |
+| `pre_data`, `post_data` | Command set name(s) run only on the hub, when your human syncs this workspace with a copy of production's data: before that data replaces the project's databases, and after, before `pre_deploy`. `post_data` is where the data is made to fit this branch, usually with the "migration" command set |
 
 A hook takes one command set name or a list of names. For example, asset building usually belong in `pre_deploy`, and creating a first superuser in `post_install`. Command sets cannot install system packages: ask your human when you need one. Migrations are not part of deploy command sets, because removing columns needs a different timing than adding columns. Add a "migration" command set to allow running migrations and give the human instructions on what the timing should be.
+
+After a sync with data nothing serves until the runtimes restart, so that timing problem does not exist there: naming the "migration" command set in `post_data` is the usual choice. Data hooks never run in production.
 
 Adding, removing or renaming a runtime or an exposure changes how the project is set up, and needs your human to run `invoke workspaces.configure` on every installation. Changes to command sets and hooks go out with a normal deploy.
 
