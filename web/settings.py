@@ -179,7 +179,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.mail.mail_validation",
     "social_core.pipeline.user.create_user",
     "accounts.pipeline.set_password",
-    "accounts.pipeline.set_email_opt_out",
+    "accounts.pipeline.set_email_opt_in",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
     "accounts.pipeline.redirect_to_next",

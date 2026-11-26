@@ -57,7 +57,7 @@ def signup(request: HttpRequest) -> HttpResponse:
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
         return _complete(request, {"username": data["username"], "email": data["email"], REDIRECT_FIELD_NAME: next_url},
-                         password_hash=make_password(data["password1"]), email_opt_out=data["email_opt_out"])
+                         password_hash=make_password(data["password1"]), email_opt_in=form.email_opt_in)
     return render(request, "accounts/signup.htmx", {"form": form, "next": next_url})
 
 
@@ -85,14 +85,14 @@ def profile(request: HttpRequest) -> HttpResponse:
         "hints": totals["hints"] or 0,
         "categories": categories,
         "recent": solved.select_related("puzzle", "puzzle__category").order_by("-solved_at")[:10],
-        "email_form": EmailPreferencesForm(instance=request.user),
+        "email_form": EmailPreferencesForm(user=request.user),
     })
 
 
 @login_required
 @require_POST
 def email_preferences(request: HttpRequest) -> HttpResponse:
-    form = EmailPreferencesForm(request.POST, instance=request.user)
+    form = EmailPreferencesForm(request.POST, user=request.user)
     if form.is_valid():
         form.save()
     if not request.htmx:

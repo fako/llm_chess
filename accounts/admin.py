@@ -6,5 +6,5 @@ from accounts.models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    fieldsets = [*BaseUserAdmin.fieldsets, ("Email", {"fields": ["email_opt_out"]})]
-    list_filter = [*BaseUserAdmin.list_filter, "email_opt_out"]
+    fieldsets = [*BaseUserAdmin.fieldsets, ("Email", {"fields": ["email_opt_in"]})]
+    list_filter = [*BaseUserAdmin.list_filter, "email_opt_in"]

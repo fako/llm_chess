@@ -5,17 +5,16 @@ from django.utils.translation import gettext, gettext_lazy
 from accounts.models import User
 
 
-def email_opt_out_field() -> forms.BooleanField:
-    return forms.BooleanField(
-        required=False,
-        label=gettext_lazy("accounts.email_opt_out.label"),
-        help_text=gettext_lazy("accounts.email_opt_out.help"),
-    )
+# Promotional email is opt-in. The box people see says the opposite, "don't send me promotional emails", and is
+# ticked until they untick it, so nobody gets them without acting on it. Users store the choice as email_opt_in.
+
+def no_promotions_field() -> forms.BooleanField:
+    return forms.BooleanField(required=False, initial=True, label=gettext_lazy("accounts.email.no_promotions"))
 
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True, label=gettext_lazy("accounts.signup.email"))
-    email_opt_out = email_opt_out_field()
+    no_promotions = no_promotions_field()
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -27,10 +26,18 @@ class SignupForm(UserCreationForm):
             raise forms.ValidationError(gettext("accounts.signup.email_taken"))
         return email
 
+    @property
+    def email_opt_in(self) -> bool:
+        return not self.cleaned_data["no_promotions"]
 
-class EmailPreferencesForm(forms.ModelForm):
-    email_opt_out = email_opt_out_field()
 
-    class Meta:
-        model = User
-        fields = ("email_opt_out",)
+class EmailPreferencesForm(forms.Form):
+    no_promotions = no_promotions_field()
+
+    def __init__(self, *args, user: User, **kwargs):
+        super().__init__(*args, initial={"no_promotions": not user.email_opt_in}, **kwargs)
+        self.user = user
+
+    def save(self) -> None:
+        self.user.email_opt_in = not self.cleaned_data["no_promotions"]
+        self.user.save(update_fields=["email_opt_in"])

@@ -34,11 +34,11 @@ def set_password(user=None, is_new=False, password_hash=None, *args, **kwargs):
     return None
 
 
-def set_email_opt_out(user=None, is_new=False, email_opt_out=False, *args, **kwargs):
-    if user is None or not is_new or not email_opt_out:
+def set_email_opt_in(user=None, is_new=False, email_opt_in=False, *args, **kwargs):
+    if user is None or not is_new or not email_opt_in:
         return None
-    user.email_opt_out = True
-    user.save(update_fields=["email_opt_out"])
+    user.email_opt_in = True
+    user.save(update_fields=["email_opt_in"])
     return None
 
 

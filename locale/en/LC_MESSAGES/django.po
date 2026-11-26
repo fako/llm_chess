@@ -185,13 +185,10 @@ msgstr "Hi %(username)s,\n\nSomeone asked to reset the password of your Chess pu
 msgid "accounts.mail.closing"
 msgstr "Kind regards,\n\nChess puzzles"
 
-msgid "accounts.email_opt_out.label"
-msgstr "Don't send me emails from Chess puzzles"
+msgid "accounts.email.no_promotions"
+msgstr "Don't send me promotional emails from Chess puzzles"
 
-msgid "accounts.email_opt_out.help"
-msgstr "You'll still get the emails your account needs, like the one to reset your password."
-
-msgid "accounts.email_opt_out.saved"
+msgid "accounts.email.saved"
 msgstr "Saved"
 
 msgid "puzzles.home.heading"
