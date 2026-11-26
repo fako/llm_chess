@@ -185,8 +185,8 @@ msgstr "Hoi %(username)s,\n\nIemand heeft gevraagd om het wachtwoord van je acco
 msgid "accounts.mail.closing"
 msgstr "Met vriendelijke groet,\n\nSchaakpuzzeltjes"
 
-msgid "accounts.email.no_promotions"
-msgstr "Stuur me geen promotionele e-mails van Schaakpuzzeltjes"
+msgid "accounts.email.promotions"
+msgstr "Stuur me promotionele e-mails van Schaakpuzzeltjes"
 
 msgid "accounts.email.saved"
 msgstr "Opgeslagen"

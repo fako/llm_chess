@@ -11,12 +11,11 @@ from accounts.models import User
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
 
 
-# Browsers send the "don't send me promotional emails" box, because it is ticked until people untick it
 SIGNUP = {
     "username": "newcomer", "email": "newcomer@example.com",
-    "password1": "a-long-passphrase-42", "password2": "a-long-passphrase-42", "no_promotions": "on",
+    "password1": "a-long-passphrase-42", "password2": "a-long-passphrase-42",
 }
-SIGNUP_WITH_PROMOTIONS = {key: value for key, value in SIGNUP.items() if key != "no_promotions"}
+SIGNUP_WITH_PROMOTIONS = {**SIGNUP, "email_opt_in": "on"}
 
 
 class TestLogin(TestCase):
@@ -81,9 +80,9 @@ class TestSignup(TestCase):
     @override_settings(SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION=False)
     def test_signup_with_email_opt_in_and_next(self):
         response = self.client.get("/en/accounts/signup/?next=/en/puzzles/1/")
-        self.assertContains(response, "t send me promotional emails from Chess puzzles")
-        self.assertContains(response, 'name="no_promotions" class="mt-0.5 h-5 w-5 shrink-0 accent-walnut" '
-                                      'id="id_no_promotions" checked', msg_prefix="email is opt-in")
+        self.assertContains(response, "Send me promotional emails from Chess puzzles")
+        self.assertContains(response, 'name="email_opt_in" class="mt-0.5 h-5 w-5 shrink-0 accent-walnut" '
+                                      'id="id_email_opt_in">', msg_prefix="email is opt-in, so the box is unticked")
         self.assertContains(response, 'href="/en/accounts/login/?next=%2Fen%2Fpuzzles%2F1%2F"')
         response = self.client.post("/en/accounts/signup/", {**SIGNUP_WITH_PROMOTIONS, "next": "/en/puzzles/1/"})
         self.assertRedirects(response, "/en/puzzles/1/", fetch_redirect_response=False)
@@ -233,15 +232,16 @@ class TestProfile(TestCase):
     def test_email_opt_in(self):
         response = self.client.get("/en/accounts/profile/")
         self.assertContains(response, 'hx-post="/en/accounts/profile/email/"')
-        self.assertContains(response, "t send me promotional emails from Chess puzzles")
-        self.assertContains(response, " checked", msg_prefix="email is opt-in")
-        response = self.client.post("/en/accounts/profile/email/", {}, headers={"HX-Request": "true"})  # unticked
+        self.assertContains(response, "Send me promotional emails from Chess puzzles")
+        self.assertNotContains(response, " checked", msg_prefix="email is opt-in")
+        response = self.client.post("/en/accounts/profile/email/", {"email_opt_in": "on"},
+                                    headers={"HX-Request": "true"})
         self.assertContains(response, "Saved")
-        self.assertNotContains(response, " checked")
+        self.assertContains(response, " checked")
         self.assertNotContains(response, "<html")
         self.user.refresh_from_db()
         self.assertTrue(self.user.email_opt_in)
-        response = self.client.post("/en/accounts/profile/email/", {"no_promotions": "on"})
+        response = self.client.post("/en/accounts/profile/email/", {})  # unticked
         self.assertRedirects(response, "/en/accounts/profile/")
         self.user.refresh_from_db()
         self.assertFalse(self.user.email_opt_in)
