@@ -5,14 +5,13 @@ from django.utils.translation import gettext, gettext_lazy
 from accounts.models import User
 
 
-def email_opt_in_field() -> forms.BooleanField:
-    # Promotional email is opt-in, so the box starts unticked
-    return forms.BooleanField(required=False, initial=False, label=gettext_lazy("accounts.email.promotions"))
+def email_opt_in_field(initial: bool = False) -> forms.BooleanField:
+    return forms.BooleanField(required=False, initial=initial, label=gettext_lazy("accounts.email.promotions"))
 
 
 class SignupForm(UserCreationForm):
     email = forms.EmailField(required=True, label=gettext_lazy("accounts.signup.email"))
-    email_opt_in = email_opt_in_field()
+    email_opt_in = email_opt_in_field(initial=True)  # ticked when signing up, people untick it to opt out
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -26,7 +25,7 @@ class SignupForm(UserCreationForm):
 
 
 class EmailPreferencesForm(forms.ModelForm):
-    email_opt_in = email_opt_in_field()
+    email_opt_in = email_opt_in_field()  # shows what the user chose
 
     class Meta:
         model = User

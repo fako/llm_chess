@@ -9,6 +9,6 @@ class User(AbstractUser):
     email_opt_in = models.BooleanField(
         default=False,
         db_default=False,  # lets code from before this field create users while a deploy is underway
-        help_text="The user wants promotional emails. Promotional email is opt-in: send it only to these users. "
+        help_text="The user wants promotional emails: send them only to these users. "
                   "Emails the account needs, like email verification and password resets, always go out.",
     )

@@ -82,15 +82,15 @@ class TestSignup(TestCase):
         response = self.client.get("/en/accounts/signup/?next=/en/puzzles/1/")
         self.assertContains(response, "Send me promotional emails from Chess puzzles")
         self.assertContains(response, 'name="email_opt_in" class="mt-0.5 h-5 w-5 shrink-0 accent-walnut" '
-                                      'id="id_email_opt_in">', msg_prefix="email is opt-in, so the box is unticked")
+                                      'id="id_email_opt_in" checked', msg_prefix="the box is ticked at signup")
         self.assertContains(response, 'href="/en/accounts/login/?next=%2Fen%2Fpuzzles%2F1%2F"')
         response = self.client.post("/en/accounts/signup/", {**SIGNUP_WITH_PROMOTIONS, "next": "/en/puzzles/1/"})
         self.assertRedirects(response, "/en/puzzles/1/", fetch_redirect_response=False)
         self.assertTrue(User.objects.get(username="newcomer").email_opt_in)
 
     @override_settings(SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION=False)
-    def test_signup_gets_no_emails_unless_asked(self):
-        self.client.post("/en/accounts/signup/", SIGNUP)
+    def test_signup_without_promotional_emails(self):
+        self.client.post("/en/accounts/signup/", SIGNUP)  # people who untick the box
         self.assertFalse(User.objects.get(username="newcomer").email_opt_in)
 
     def test_next_does_not_leave_the_site(self):
@@ -233,7 +233,7 @@ class TestProfile(TestCase):
         response = self.client.get("/en/accounts/profile/")
         self.assertContains(response, 'hx-post="/en/accounts/profile/email/"')
         self.assertContains(response, "Send me promotional emails from Chess puzzles")
-        self.assertNotContains(response, " checked", msg_prefix="email is opt-in")
+        self.assertNotContains(response, " checked", msg_prefix="the profile shows the stored choice")
         response = self.client.post("/en/accounts/profile/email/", {"email_opt_in": "on"},
                                     headers={"HX-Request": "true"})
         self.assertContains(response, "Saved")

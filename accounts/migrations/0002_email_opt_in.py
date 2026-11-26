@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='email_opt_in',
-            field=models.BooleanField(db_default=False, default=False, help_text='The user wants promotional emails. Promotional email is opt-in: send it only to these users. Emails the account needs, like email verification and password resets, always go out.'),
+            field=models.BooleanField(db_default=False, default=False, help_text='The user wants promotional emails: send them only to these users. Emails the account needs, like email verification and password resets, always go out.'),
         ),
     ]
