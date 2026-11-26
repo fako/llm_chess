@@ -176,6 +176,9 @@ msgstr "Herstel je wachtwoord voor Schaakpuzzeltjes"
 msgid "accounts.mail.password_reset.body"
 msgstr "Hoi %(username)s,\n\nIemand heeft gevraagd om het wachtwoord van je account bij Schaakpuzzeltjes te herstellen. Open deze link om een nieuw wachtwoord te kiezen:\n\n%(url)s\n\nDe link werkt een dag lang. Heb je hier niet om gevraagd? Dan kun je deze e-mail negeren en blijft je wachtwoord hetzelfde."
 
+msgid "accounts.mail.closing"
+msgstr "Met vriendelijke groet,\n\nSchaakpuzzeltjes"
+
 msgid "puzzles.home.heading"
 msgstr "Kies je puzzels"
 

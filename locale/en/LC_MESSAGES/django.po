@@ -176,6 +176,9 @@ msgstr "Reset your password for Chess puzzles"
 msgid "accounts.mail.password_reset.body"
 msgstr "Hi %(username)s,\n\nSomeone asked to reset the password of your Chess puzzles account. Open this link to choose a new password:\n\n%(url)s\n\nThe link works for one day. If you didn't ask for this, you can ignore this email and your password stays the same."
 
+msgid "accounts.mail.closing"
+msgstr "Kind regards,\n\nChess puzzles"
+
 msgid "puzzles.home.heading"
 msgstr "Choose your puzzles"
 

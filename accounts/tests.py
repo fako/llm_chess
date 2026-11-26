@@ -95,6 +95,7 @@ class TestSignup(TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ["newcomer@example.com"])
+        self.assertTrue(mail.outbox[0].body.endswith("Kind regards,\n\nChess puzzles\n"))
         link = re.search(r"https://chess\.example\.com(/\S+)", mail.outbox[0].body).group(1)
         self.assertNotIn("a-long-passphrase-42", str(Partial.objects.get().data), "no plain passwords are stored")
 
@@ -135,6 +136,7 @@ class TestPasswordReset(TestCase):
         message = mail.outbox[0]
         self.assertEqual(message.subject, "Reset your password for Chess puzzles")
         self.assertIn("Hi solver,", message.body)
+        self.assertTrue(message.body.endswith("Kind regards,\n\nChess puzzles\n"))
         self.assertEqual(parseaddr(message.from_email), ("Fako Berkers", "noreply@mail.fakoberkers.nl"))
         self.assertNotIn("&#", message.body, "the plain text mail is not HTML escaped")
 
@@ -158,6 +160,7 @@ class TestPasswordReset(TestCase):
         self.assertEqual(base, "https://testserver", "links follow the host and the scheme the edge reports")
         self.assertTrue(link.startswith("/nl/accounts/password/reset/"))
         self.assertEqual(mail.outbox[0].subject, "Herstel je wachtwoord voor Schaakpuzzeltjes")
+        self.assertTrue(mail.outbox[0].body.endswith("Met vriendelijke groet,\n\nSchaakpuzzeltjes\n"))
 
     def test_unknown_email_sends_nothing(self):
         response = self.client.post("/en/accounts/password/reset/", {"email": "nobody@example.com"})

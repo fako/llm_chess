@@ -22,7 +22,7 @@ def send_validation(strategy, backend, code, partial_token):
     url = public_url(path, strategy.build_absolute_uri("/"))
     send_mail(
         subject=gettext("accounts.mail.validation.subject"),
-        message=gettext("accounts.mail.validation.body") % {"url": url} + "\n",
+        message=gettext("accounts.mail.validation.body") % {"url": url} + "\n\n" + gettext("accounts.mail.closing") + "\n",
         from_email=None,
         recipient_list=[code.email],
     )
