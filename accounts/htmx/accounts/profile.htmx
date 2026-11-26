@@ -62,5 +62,6 @@
     {% endif %}
 
     <a href="{{ url('accounts:password_change') }}" class="btn-secondary w-full">{{ _("accounts.password_change.title") }}</a>
+    {% include "accounts/_email_preferences.htmx" %}
   </div>
 {% endblock %}

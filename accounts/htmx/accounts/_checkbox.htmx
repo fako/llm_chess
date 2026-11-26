@@ -1,0 +1,7 @@
+<div class="flex items-start gap-3">
+  {{ field.as_widget(attrs={"class": "mt-0.5 h-5 w-5 shrink-0 accent-walnut"}) }}
+  <label for="{{ field.id_for_label }}" class="text-sm text-ink">
+    {{ field.label }}
+    {% if field.help_text %}<span class="mt-0.5 block text-muted">{{ field.help_text }}</span>{% endif %}
+  </label>
+</div>

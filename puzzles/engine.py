@@ -202,7 +202,10 @@ def adjacent_puzzles(puzzle: ChessPuzzle) -> tuple[ChessPuzzle | None, ChessPuzz
 def next_puzzle(user, category: ChessPuzzleCategory) -> ChessPuzzle | None:
     """
     Returns a puzzle the user didn't solve yet, preferring puzzles that the user already started.
+    Visitors without an account get a random puzzle.
     """
+    if not user.is_authenticated:
+        return ChessPuzzle.objects.filter(category=category).order_by("?").first()
     started = UserChessPuzzle.objects \
         .filter(user=user, puzzle__category=category, solved_at__isnull=True) \
         .order_by("-updated_at") \

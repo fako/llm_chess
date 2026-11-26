@@ -1,18 +1,23 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.db.models import Count, Q
-from django.http import HttpRequest, HttpResponse
+from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django_htmx.http import HttpResponseClientRedirect
 
 import chess
 
-from puzzles import engine
+from puzzles import engine, previews
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
 
 
-@login_required
+# Anyone may browse the categories and look at puzzles. Playing a puzzle needs an account, because the progress
+# is stored per user. The puzzle page asks visitors to log in or sign up before they play (see board.js).
+
+
 def home(request: HttpRequest) -> HttpResponse:
-    solved = UserChessPuzzle.objects.filter(user=request.user, solved_at__isnull=False).values("puzzle_id")
+    solved = UserChessPuzzle.objects.filter(user_id=request.user.pk, solved_at__isnull=False).values("puzzle_id")
     categories = ChessPuzzleCategory.objects.filter(is_active=True).annotate(
         total=Count("puzzles"),
         unsolved=Count("puzzles", filter=~Q(puzzles__id__in=solved)),
@@ -20,7 +25,6 @@ def home(request: HttpRequest) -> HttpResponse:
     return render(request, "puzzles/home.htmx", {"categories": categories})
 
 
-@login_required
 def category(request: HttpRequest, slug: str) -> HttpResponse:
     puzzle_category = get_object_or_404(ChessPuzzleCategory, slug=slug, is_active=True)
     puzzle = engine.next_puzzle(request.user, puzzle_category)
@@ -44,6 +48,8 @@ def _render_puzzle(request: HttpRequest, progress: UserChessPuzzle, wrong_move: 
         "state": state,
         "puzzle": progress.puzzle,
         "category": progress.puzzle.category,
+        "preview_url": reverse("puzzle_preview", kwargs={"pk": progress.puzzle.pk,
+                                                         "digest": previews.digest(progress.puzzle)}),
         "previous_puzzle": previous_puzzle,
         "next_puzzle": next_puzzle,
         "wrong_squares": wrong_squares,
@@ -79,16 +85,20 @@ def _squares(state: engine.PuzzleState, wrong_squares: list[str]) -> list[dict]:
     return squares
 
 
-@login_required
 def puzzle(request: HttpRequest, pk: int) -> HttpResponse:
     chess_puzzle = get_object_or_404(ChessPuzzle.objects.select_related("category"), pk=pk)
-    progress = engine.get_progress(request.user, chess_puzzle)
+    if request.user.is_authenticated:
+        progress = engine.get_progress(request.user, chess_puzzle)
+    else:  # visitors see the puzzle as a fresh attempt that never gets saved
+        progress = UserChessPuzzle(puzzle=chess_puzzle)
     return _render_puzzle(request, progress)
 
 
-@login_required
 @require_POST
 def puzzle_action(request: HttpRequest, pk: int, action: str) -> HttpResponse:
+    if not request.user.is_authenticated:  # the page asks visitors to log in first, but sessions may expire
+        login_url = redirect_to_login(reverse("puzzles:puzzle", kwargs={"pk": pk})).url
+        return HttpResponseClientRedirect(login_url) if request.htmx else redirect(login_url)
     chess_puzzle = get_object_or_404(ChessPuzzle.objects.select_related("category"), pk=pk)
     progress = engine.get_progress(request.user, chess_puzzle)
     wrong_move = None
@@ -105,3 +115,17 @@ def puzzle_action(request: HttpRequest, pk: int, action: str) -> HttpResponse:
     if not request.htmx:
         return redirect("puzzles:puzzle", pk=pk)
     return _render_puzzle(request, progress, wrong_move=wrong_move)
+
+
+def puzzle_preview(request: HttpRequest, pk: int, digest: str) -> HttpResponse:
+    """
+    The image that apps show with a shared link to a puzzle (see previews.py). The digest in the URL changes with
+    the image, so the image may be cached for good, and old URLs move on to the current image.
+    """
+    chess_puzzle = get_object_or_404(ChessPuzzle, pk=pk)
+    current = previews.digest(chess_puzzle)
+    if digest != current:
+        return redirect("puzzle_preview", pk=pk, digest=current, permanent=True)
+    response = FileResponse(previews.get_preview(chess_puzzle).open("rb"), content_type="image/png")
+    response["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response

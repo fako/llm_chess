@@ -6,9 +6,9 @@
       <h1 class="font-serif text-3xl">{{ _("accounts.signup.heading") }}</h1>
       <p class="mt-1 text-muted">{{ _("accounts.signup.intro") }}</p>
     </div>
-    {% with submit=_("accounts.signup.submit"), next=None %}{% include "accounts/_form.htmx" %}{% endwith %}
+    {% with submit=_("accounts.signup.submit") %}{% include "accounts/_form.htmx" %}{% endwith %}
     <p class="text-center text-sm text-muted">
-      {{ _("accounts.signup.have_account") }} <a href="{{ url('accounts:login') }}" class="font-medium text-walnut underline underline-offset-4">{{ _("accounts.signup.login_link") }}</a>
+      {{ _("accounts.signup.have_account") }} <a href="{{ url('accounts:login') }}{{ '?' ~ {'next': next}|urlencode if next }}" class="font-medium text-walnut underline underline-offset-4">{{ _("accounts.signup.login_link") }}</a>
     </p>
   </div>
 {% endblock %}

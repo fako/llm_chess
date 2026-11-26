@@ -1,6 +1,49 @@
 {% extends "base.htmx" %}
-{% block title %}{{ category.name }} · {{ _("site.name") }}{% endblock %}
+{% block title %}{{ puzzle.title or category.name }} · {{ _("site.name") }}{% endblock %}
+{% block preview_title %}{{ puzzle.title or category.name }}{% endblock %}
+{% block description %}{{ puzzle.instruction }}{% endblock %}
+{% block preview_image %}
+  <meta property="og:image" content="{{ absolute_url(request, preview_url) }}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ puzzle.instruction }}">
+  <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
 {% block scripts %}<script src="{{ static('puzzles/board.js') }}" defer></script>{% endblock %}
 {% block content %}
   {% include "puzzles/partials/puzzle.htmx" %}
+
+  {% if not request.user.is_authenticated %}
+    {% set back = '?' ~ {'next': request.path}|urlencode %}
+    <dialog id="account-dialog" class="card w-[calc(100%-2rem)] max-w-sm p-5 text-ink backdrop:bg-ink/40"
+            aria-labelledby="account-dialog-title">
+      <h2 id="account-dialog-title" class="font-serif text-xl">{{ _("puzzles.account.title") }}</h2>
+      <p class="mt-2 text-muted">{{ _("puzzles.account.intro") }}</p>
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <a href="{{ url('accounts:login') }}{{ back }}" class="btn-secondary">{{ _("puzzles.account.log_in") }}</a>
+        <a href="{{ url('accounts:signup') }}{{ back }}" class="btn-primary">{{ _("puzzles.account.sign_up") }}</a>
+      </div>
+      <form method="dialog" class="mt-2">
+        <button class="w-full rounded-lg py-2 text-sm text-muted hover:text-walnut">{{ _("puzzles.account.cancel") }}</button>
+      </form>
+    </dialog>
+  {% endif %}
+
+  <dialog id="share-dialog" class="card w-[calc(100%-2rem)] max-w-sm p-5 text-ink backdrop:bg-ink/40"
+          aria-labelledby="share-dialog-title">
+    {# board.js shows the copied message when it put the link on the clipboard, and the manual one otherwise #}
+    <h2 id="share-dialog-title" class="font-serif text-xl">
+      <span data-share-copied>{{ _("puzzles.share.copied_title") }}</span>
+      <span data-share-manual hidden>{{ _("puzzles.share.copy_title") }}</span>
+    </h2>
+    <p class="mt-2 text-muted">
+      <span data-share-copied>{{ _("puzzles.share.copied_intro") }}</span>
+      <span data-share-manual hidden>{{ _("puzzles.share.copy_intro") }}</span>
+    </p>
+    <input type="text" readonly class="field mt-4 text-sm" aria-label="{{ _('puzzles.share.link') }}" data-share-link>
+    <form method="dialog" class="mt-4">
+      <button class="btn-primary w-full">{{ _("puzzles.share.close") }}</button>
+    </form>
+  </dialog>
 {% endblock %}

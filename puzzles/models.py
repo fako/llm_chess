@@ -132,6 +132,15 @@ class ChessPuzzle(models.Model):
         return localized(self, "hint")
 
     @property
+    def instruction(self) -> str:
+        """
+        What the player has to do, like "White to play and mate in 2", in the active language.
+        """
+        if self.perspective == Perspective.WHITE:
+            return gettext("puzzles.puzzle.white_to_play") % {"task": self.category.task}
+        return gettext("puzzles.puzzle.black_to_play") % {"task": self.category.task}
+
+    @property
     def board(self) -> chess.Board:
         return chess.Board(self.fen)
 

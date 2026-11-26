@@ -44,6 +44,9 @@
             "venv/bin/python manage.py loaddata initial_puzzles"
         ]
     },
+    "file_storages": [
+        "media"
+    ],
     "pre_install": [
         "statics",
         "translations"
@@ -56,5 +59,9 @@
         "statics",
         "translations"
     ],
-    "post_deploy": null
+    "post_deploy": null,
+    "pre_data": null,
+    "post_data": [
+        "migration"
+    ]
 }

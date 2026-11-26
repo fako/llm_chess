@@ -12,25 +12,33 @@
      data-color="{{ puzzle.perspective }}"
      data-move-url="{{ action_url|replace('ACTION', 'move') }}"
      data-legal='{{ state.legal_moves|tojson }}'
+     {% if not request.user.is_authenticated %}data-needs-account{% endif %}
      data-labels='{{ {"promote": _("puzzles.board.promote_to"), "q": _("puzzles.board.queen"),
                       "r": _("puzzles.board.rook"), "b": _("puzzles.board.bishop"),
                       "n": _("puzzles.board.knight")}|tojson }}'>
 
-  <div class="flex items-end justify-between gap-3">
-    <div class="min-w-0">
-      <h1 class="truncate font-serif text-2xl">{{ puzzle.title or category.name }}</h1>
-      <p class="text-sm text-muted">
+  <div>
+    <div class="flex items-center justify-between gap-3">
+      <h1 class="min-w-0 truncate font-serif text-2xl">{{ puzzle.title or category.name }}</h1>
+      <button type="button" class="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-ink hover:bg-line/50"
+              data-share-url="{{ absolute_url(request, url('puzzles:puzzle', kwargs={'pk': puzzle.pk})) }}"
+              data-share-title="{{ puzzle.title or category.name }}"
+              data-share-text="{{ puzzle.instruction }}"
+              aria-label="{{ _('puzzles.share.label') }}" title="{{ _('puzzles.share.label') }}">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      </button>
+    </div>
+    <div class="flex items-end justify-between gap-3">
+      <p class="min-w-0 text-sm text-muted">
         <span class="mr-1 inline-block h-3 w-3 rounded-full border border-ink/40 align-[-1px]
                      {{ 'bg-white' if puzzle.perspective == 'white' else 'bg-ink' }}"></span>
-        {% if puzzle.perspective == 'white' -%}
-          {{ _("puzzles.puzzle.white_to_play", task=category.task) }}
-        {%- else -%}
-          {{ _("puzzles.puzzle.black_to_play", task=category.task) }}
-        {%- endif %}
+        {{ puzzle.instruction }}
       </p>
-    </div>
-    <div class="shrink-0 text-right text-xs text-muted">
-      <div>
+      <div class="shrink-0 text-right text-xs text-muted">
         {%- if state.phase.value == 'move' %}{{ _("puzzles.stats.remaining", count=state.moves_left) }} · {% endif -%}
         {{ _("puzzles.stats.wrong", count=progress.wrong_moves) }} ·
         {{- " " ~ ngettext("puzzles.stats.hints", "puzzles.stats.hints.plural", progress.hints_used) }}
@@ -62,8 +70,10 @@
     {% endif %}
     <div class="flex items-stretch gap-2">
       {{ puzzle_link(previous_puzzle, '‹', _('puzzles.puzzle.previous')) }}
-      <button class="btn-secondary btn-sm min-w-0 flex-1" hx-post="{{ action_url|replace('ACTION', 'hint') }}"
-              hx-target="#puzzle" hx-swap="outerHTML"
+      {# Visitors get asked to log in instead (see board.js), so a hint never gets lost #}
+      <button class="btn-secondary btn-sm min-w-0 flex-1"
+              {% if request.user.is_authenticated %}hx-post="{{ action_url|replace('ACTION', 'hint') }}" hx-target="#puzzle" hx-swap="outerHTML"
+              {% else %}type="button" data-ask-account{% endif %}
               {% if progress.hint_level >= 2 %}disabled{% endif %}>
         {% if progress.hint_level == 0 %}{{ _("puzzles.puzzle.hint") }}{% elif progress.hint_level == 1 %}{{ _("puzzles.puzzle.show_move") }}{% else %}{{ _("puzzles.puzzle.shown") }}{% endif %}
       </button>

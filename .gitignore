@@ -31,6 +31,7 @@ venv/
 locale/**/*.mo
 .env
 staticfiles/
+media/
 data/
 
 # Node exclusions

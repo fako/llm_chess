@@ -23,6 +23,12 @@ msgstr "Mijn resultaten"
 msgid "web.menu.sign_out"
 msgstr "Uitloggen"
 
+msgid "web.menu.log_in"
+msgstr "Inloggen"
+
+msgid "web.menu.sign_up"
+msgstr "Registreren"
+
 msgid "accounts.login.title"
 msgstr "Inloggen"
 
@@ -179,6 +185,15 @@ msgstr "Hoi %(username)s,\n\nIemand heeft gevraagd om het wachtwoord van je acco
 msgid "accounts.mail.closing"
 msgstr "Met vriendelijke groet,\n\nSchaakpuzzeltjes"
 
+msgid "accounts.email_opt_out.label"
+msgstr "Stuur me geen e-mails van Schaakpuzzeltjes"
+
+msgid "accounts.email_opt_out.help"
+msgstr "E-mails die je account nodig heeft, zoals om je wachtwoord te herstellen, krijg je wel."
+
+msgid "accounts.email_opt_out.saved"
+msgstr "Opgeslagen"
+
 msgid "puzzles.home.heading"
 msgstr "Kies je puzzels"
 
@@ -261,3 +276,39 @@ msgstr "loper"
 
 msgid "puzzles.board.knight"
 msgstr "paard"
+
+msgid "puzzles.account.title"
+msgstr "Houd je voortgang bij"
+
+msgid "puzzles.account.intro"
+msgstr "Om je voortgang bij te houden op Schaakpuzzeltjes is het nodig om een account aan te maken. We vragen alleen je e-mailadres."
+
+msgid "puzzles.account.log_in"
+msgstr "Inloggen"
+
+msgid "puzzles.account.sign_up"
+msgstr "Registreren"
+
+msgid "puzzles.account.cancel"
+msgstr "Annuleren"
+
+msgid "puzzles.share.label"
+msgstr "Puzzel delen"
+
+msgid "puzzles.share.link"
+msgstr "Link naar de puzzel"
+
+msgid "puzzles.share.copied_title"
+msgstr "Link gekopieerd"
+
+msgid "puzzles.share.copied_intro"
+msgstr "Plak de link in een bericht om deze puzzel te delen."
+
+msgid "puzzles.share.copy_title"
+msgstr "Deel deze puzzel"
+
+msgid "puzzles.share.copy_intro"
+msgstr "Kopieer deze link om de puzzel te delen."
+
+msgid "puzzles.share.close"
+msgstr "Sluiten"

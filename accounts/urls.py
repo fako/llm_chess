@@ -12,6 +12,7 @@ urlpatterns = [
     path("signup/", views.signup, name="signup"),
     path("verify-email/", views.verify_email, name="verify_email"),
     path("profile/", views.profile, name="profile"),
+    path("profile/email/", views.email_preferences, name="email_preferences"),
     path("password/", auth_views.PasswordChangeView.as_view(
         template_name="accounts/password_change.htmx",
         success_url=reverse_lazy("accounts:password_changed"),

@@ -23,6 +23,12 @@ msgstr "My results"
 msgid "web.menu.sign_out"
 msgstr "Sign out"
 
+msgid "web.menu.log_in"
+msgstr "Log in"
+
+msgid "web.menu.sign_up"
+msgstr "Sign up"
+
 msgid "accounts.login.title"
 msgstr "Log in"
 
@@ -179,6 +185,15 @@ msgstr "Hi %(username)s,\n\nSomeone asked to reset the password of your Chess pu
 msgid "accounts.mail.closing"
 msgstr "Kind regards,\n\nChess puzzles"
 
+msgid "accounts.email_opt_out.label"
+msgstr "Don't send me emails from Chess puzzles"
+
+msgid "accounts.email_opt_out.help"
+msgstr "You'll still get the emails your account needs, like the one to reset your password."
+
+msgid "accounts.email_opt_out.saved"
+msgstr "Saved"
+
 msgid "puzzles.home.heading"
 msgstr "Choose your puzzles"
 
@@ -261,3 +276,39 @@ msgstr "bishop"
 
 msgid "puzzles.board.knight"
 msgstr "knight"
+
+msgid "puzzles.account.title"
+msgstr "Keep track of your progress"
+
+msgid "puzzles.account.intro"
+msgstr "To keep track of your progress on Chess puzzles, you need an account. We only ask for your email address."
+
+msgid "puzzles.account.log_in"
+msgstr "Log in"
+
+msgid "puzzles.account.sign_up"
+msgstr "Sign up"
+
+msgid "puzzles.account.cancel"
+msgstr "Cancel"
+
+msgid "puzzles.share.label"
+msgstr "Share puzzle"
+
+msgid "puzzles.share.link"
+msgstr "Link to the puzzle"
+
+msgid "puzzles.share.copied_title"
+msgstr "Link copied"
+
+msgid "puzzles.share.copied_intro"
+msgstr "Paste the link in a message to share this puzzle."
+
+msgid "puzzles.share.copy_title"
+msgstr "Share this puzzle"
+
+msgid "puzzles.share.copy_intro"
+msgstr "Copy this link to share the puzzle."
+
+msgid "puzzles.share.close"
+msgstr "Close"

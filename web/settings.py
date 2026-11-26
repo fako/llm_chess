@@ -179,8 +179,10 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.mail.mail_validation",
     "social_core.pipeline.user.create_user",
     "accounts.pipeline.set_password",
+    "accounts.pipeline.set_email_opt_out",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.social_auth.load_extra_data",
+    "accounts.pipeline.redirect_to_next",
 )
 
 # Email
@@ -207,6 +209,10 @@ PASSWORD_RESET_TIMEOUT = 60 * 60 * 24  # seconds a password reset link stays val
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Files the project makes or receives, like the link previews of puzzles. workspace.json lists the directory under
+# file_storages, so backups keep it.
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "web.storage.StaticStorage"},

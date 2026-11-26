@@ -1,0 +1,6 @@
+<form method="post" action="{{ url('accounts:email_preferences') }}" class="card p-4"
+      hx-post="{{ url('accounts:email_preferences') }}" hx-trigger="change" hx-swap="outerHTML">
+  {{ csrf_input }}
+  {% with field=email_form["email_opt_out"] %}{% include "accounts/_checkbox.htmx" %}{% endwith %}
+  {% if saved %}<p class="mt-2 text-right text-xs text-sage" role="status">{{ _("accounts.email_opt_out.saved") }}</p>{% endif %}
+</form>

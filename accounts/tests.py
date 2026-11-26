@@ -76,6 +76,27 @@ class TestSignup(TestCase):
         self.assertTrue(UserSocialAuth.objects.filter(user=user, provider="username", uid="newcomer").exists())
         self.assertEqual(len(mail.outbox), 0)
 
+    @override_settings(SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION=False)
+    def test_signup_with_email_opt_out_and_next(self):
+        response = self.client.get("/en/accounts/signup/?next=/en/puzzles/1/")
+        self.assertContains(response, "send me emails from Chess puzzles")
+        self.assertContains(response, 'href="/en/accounts/login/?next=%2Fen%2Fpuzzles%2F1%2F"')
+        response = self.client.post("/en/accounts/signup/", {**SIGNUP, "email_opt_out": "on", "next": "/en/puzzles/1/"})
+        self.assertRedirects(response, "/en/puzzles/1/", fetch_redirect_response=False)
+        self.assertTrue(User.objects.get(username="newcomer").email_opt_out)
+
+    @override_settings(SOCIAL_AUTH_USERNAME_FORCE_EMAIL_VALIDATION=False)
+    def test_signup_receives_emails_by_default(self):
+        self.client.post("/en/accounts/signup/", SIGNUP)
+        self.assertFalse(User.objects.get(username="newcomer").email_opt_out)
+
+    def test_next_does_not_leave_the_site(self):
+        User.objects.create_user("solver", password="secret-password")
+        response = self.client.post("/en/accounts/login/", {
+            "username": "solver", "password": "secret-password", "next": "https://evil.example.com/",
+        })
+        self.assertRedirects(response, "/en/", fetch_redirect_response=False)
+
     def test_invalid_signup(self):
         User.objects.create_user("taken", email="taken@example.com", password="secret-password")
         response = self.client.post("/en/accounts/signup/", {**SIGNUP, "username": "taken"})
@@ -110,6 +131,21 @@ class TestSignup(TestCase):
         user = User.objects.get(username="newcomer")
         self.assertTrue(user.check_password("a-long-passphrase-42"))
         self.assertEqual(self.client.session["_auth_user_id"], str(user.pk))
+        self.assertFalse(user.email_opt_out)
+
+    def test_email_opt_out_and_next_survive_email_verification(self):
+        self.client.post("/en/accounts/signup/", {**SIGNUP, "email_opt_out": "on", "next": "/en/puzzles/1/"})
+        link = re.search(r"https?://[^/\s]+(/\S+)", mail.outbox[0].body).group(1)
+        content = self.client.get(link).content.decode()
+        form = re.search(r'<form method="post" action="(/auth/[^"]+)"(.*?)</form>', content, re.DOTALL)
+        fields = dict(re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]*)"', form.group(2)))
+        response = self.client.post(form.group(1), fields)
+        self.assertRedirects(response, "/en/puzzles/1/", fetch_redirect_response=False)
+        self.assertTrue(User.objects.get(username="newcomer").email_opt_out)
+
+        self.client.logout()
+        response = self.client.post("/en/accounts/login/", {"username": "newcomer", "password": SIGNUP["password1"]})
+        self.assertRedirects(response, "/en/", fetch_redirect_response=False, msg_prefix="next is used only once")
 
 
 class TestPasswordReset(TestCase):
@@ -189,6 +225,22 @@ class TestProfile(TestCase):
         self.assertContains(response, "Back rank")
         self.assertContains(response, "1 / 1")
         self.assertContains(response, "Change password")
+
+    def test_email_opt_out(self):
+        response = self.client.get("/en/accounts/profile/")
+        self.assertContains(response, 'hx-post="/en/accounts/profile/email/"')
+        self.assertContains(response, "send me emails from Chess puzzles")
+        response = self.client.post("/en/accounts/profile/email/", {"email_opt_out": "on"},
+                                    headers={"HX-Request": "true"})
+        self.assertContains(response, "Saved")
+        self.assertContains(response, "checked")
+        self.assertNotContains(response, "<html")
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.email_opt_out)
+        response = self.client.post("/en/accounts/profile/email/", {})
+        self.assertRedirects(response, "/en/accounts/profile/")
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.email_opt_out)
 
     def test_change_password(self):
         response = self.client.post("/en/accounts/password/", {

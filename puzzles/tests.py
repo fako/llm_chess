@@ -1,14 +1,17 @@
-from io import StringIO
+import tempfile
+from io import BytesIO, StringIO
+from pathlib import Path
 from unittest.mock import patch
 
 import chess
 from django.core.management import CommandError, call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone, translation
+from PIL import Image
 
 from accounts.models import User
 from datagrowth.exceptions import DGHttpError40X
-from puzzles import engine
+from puzzles import engine, previews
 from puzzles.generation import PuzzleProposal, PuzzleProposals, Rejection, generate_puzzles, verify_proposal
 from puzzles.models import ChessPuzzle, ChessPuzzleCategory, UserChessPuzzle
 from puzzles.solver import analyse_mate_puzzle, build_solution_tree
@@ -287,10 +290,54 @@ class TestViews(EngineTestCase):
         super().setUp()
         self.client.force_login(self.user)
 
-    def test_requires_login(self):
+    def test_visitors_browse_but_need_an_account_to_play(self):
         self.client.logout()
         response = self.client.get("/en/")
-        self.assertRedirects(response, "/en/accounts/login/?next=/en/")
+        self.assertContains(response, "Mate in 2")
+        self.assertContains(response, 'href="/en/accounts/signup/?next=%2Fen%2F"')
+        self.assertNotContains(response, "My results")
+        response = self.client.get("/en/categories/mate-in-2/")
+        self.assertRedirects(response, f"/en/puzzles/{self.puzzle.pk}/")
+
+        url = f"/en/puzzles/{self.puzzle.pk}/"
+        response = self.client.get(url)
+        self.assertContains(response, "data-needs-account")
+        self.assertContains(response, 'id="account-dialog"')
+        self.assertContains(response, f'href="/en/accounts/login/?next=%2Fen%2Fpuzzles%2F{self.puzzle.pk}%2F"')
+        self.assertContains(response, "We only ask for your email address.")
+        self.assertContains(response, "data-ask-account")
+        self.assertNotContains(response, "/hint/", msg_prefix="hints wait for an account")
+        self.assertFalse(UserChessPuzzle.objects.exists(), "nothing gets stored for visitors")
+
+        login = f"/en/accounts/login/?next=/en/puzzles/{self.puzzle.pk}/"
+        response = self.client.post(url + "move/", {"move": "a5b6"})
+        self.assertRedirects(response, login, fetch_redirect_response=False)
+        response = self.client.post(url + "hint/", headers={"HX-Request": "true"})
+        self.assertEqual(response["HX-Redirect"], login, "an expired session gets sent to the login page")
+        self.assertFalse(UserChessPuzzle.objects.exists())
+
+    def test_players_play_without_account_prompt(self):
+        response = self.client.get(f"/en/puzzles/{self.puzzle.pk}/")
+        self.assertNotContains(response, "data-needs-account")
+        self.assertNotContains(response, "account-dialog")
+        self.assertContains(response, f'hx-post="/en/puzzles/{self.puzzle.pk}/hint/"')
+
+    def test_share_and_link_preview(self):
+        self.puzzle.title_en = "Quiet king walk"
+        self.puzzle.title_nl = "Stille koningswandeling"
+        self.puzzle.save()
+        url = f"/en/puzzles/{self.puzzle.pk}/"
+        response = self.client.get(url, headers={"Host": "testserver", "X-Forwarded-Proto": "https"})
+        self.assertContains(response, f'data-share-url="https://testserver{url}"')
+        self.assertContains(response, 'data-share-text="White to play and mate in 2"')
+        self.assertContains(response, 'id="share-dialog"')
+        self.assertContains(response, '<meta property="og:title" content="Quiet king walk">')
+        self.assertContains(response, '<meta property="og:description" content="White to play and mate in 2">')
+        self.assertContains(response, '<meta name="description" content="White to play and mate in 2">')
+        self.assertContains(response, "<title>Quiet king walk · Chess puzzles</title>")
+        response = self.client.get(f"/nl/puzzles/{self.puzzle.pk}/", headers={"HX-Request": "true"})
+        self.assertContains(response, 'data-share-title="Stille koningswandeling"', msg_prefix="also after a move")
+        self.assertContains(response, 'data-share-text="Wit speelt en geeft mat in 2"')
 
     def test_home_and_category(self):
         response = self.client.get("/en/")
@@ -503,3 +550,73 @@ class TestTags(TestCase):
         resource.return_value.extract.side_effect = DGHttpError40X("out of credits", refused)
         with self.assertRaisesRegex(CommandError, "refused"):
             call_command("generate_puzzles", "mate-in-2", "1", stdout=StringIO())
+
+
+class TestPreviews(EngineTestCase):
+
+    def setUp(self):
+        super().setUp()
+        media = tempfile.TemporaryDirectory()
+        self.addCleanup(media.cleanup)
+        self.enterContext(override_settings(MEDIA_ROOT=media.name))
+        self.url = f"/previews/puzzles/{self.puzzle.pk}/{previews.digest(self.puzzle)}.png"
+
+    def test_puzzle_page_links_to_its_preview(self):
+        response = self.client.get(f"/nl/puzzles/{self.puzzle.pk}/", headers={"Host": "testserver"})
+        self.assertContains(response, f'<meta property="og:image" content="http://testserver{self.url}">')
+        self.assertContains(response, '<meta property="og:image:width" content="1200">')
+        self.assertContains(response, '<meta property="og:image:alt" content="Wit speelt en geeft mat in 2">')
+        self.assertContains(response, '<meta name="twitter:card" content="summary_large_image">')
+        self.assertNotContains(response, "promo.")
+        response = self.client.get("/en/")
+        self.assertContains(response, "promo.", msg_prefix="other pages keep the promo image")
+
+    def test_preview_is_drawn_once(self):
+        with patch("puzzles.previews.draw_preview", wraps=previews.draw_preview) as draw:
+            response = self.client.get(self.url)
+            self.assertEqual(response["Content-Type"], "image/png")
+            self.assertIn("immutable", response["Cache-Control"])
+            image = Image.open(BytesIO(b"".join(response.streaming_content)))
+            self.assertEqual(image.size, (1200, 630))
+            self.client.get(self.url)
+        self.assertEqual(draw.call_count, 1)
+        self.assertTrue(previews.preview_path(self.puzzle).exists())
+
+    def test_board_faces_the_solving_side(self):
+        def share(image: Image.Image, column: int, row: int, color: tuple[int, int, int]) -> float:
+            """
+            The share of a square that has the color, where white pieces are mostly white and black ones black.
+            """
+            left = (previews.WIDTH - 8 * previews.SQUARE) // 2 + column * previews.SQUARE
+            top = (previews.HEIGHT - 8 * previews.SQUARE) // 2 + row * previews.SQUARE
+            square = image.convert("RGB").crop((left, top, left + previews.SQUARE, top + previews.SQUARE))
+            return sum(count for count, pixel in square.getcolors(previews.SQUARE ** 2) if pixel == color) / \
+                previews.SQUARE ** 2
+
+        # The white king stands on a5 and the black one on b8. White plays up the board, so a5 is in the 4th row.
+        image = previews.draw_preview(self.puzzle)
+        self.assertGreater(share(image, 0, 3, (255, 255, 255)), 0.05)
+        self.assertGreater(share(image, 1, 0, (0, 0, 0)), 0.05)
+        self.assertEqual(share(image, 7, 0, (255, 255, 255)), 0, "empty squares have no white")
+        # For black the board turns around: in the mirrored position the black king on a4 is on the right in the
+        # 4th row, and the white king on b1 is in the top row
+        black = verify_proposal(self.category, proposal(QUIET_KEY_BLACK, "black", [["Kb3"]]))
+        black.save()
+        image = previews.draw_preview(black)
+        self.assertGreater(share(image, 7, 3, (0, 0, 0)), 0.05)
+        self.assertGreater(share(image, 6, 0, (255, 255, 255)), 0.05)
+
+    def test_outdated_url_moves_on(self):
+        response = self.client.get(f"/previews/puzzles/{self.puzzle.pk}/0123456789ab.png")
+        self.assertRedirects(response, self.url, status_code=301, fetch_redirect_response=False)
+        self.assertEqual(self.client.get("/previews/puzzles/999999/0123456789ab.png").status_code, 404)
+
+    def test_command_draws_missing_and_removes_outdated(self):
+        stale = Path(previews.preview_path(self.puzzle)).with_name(f"{self.puzzle.pk}-000000000000.png")
+        stale.parent.mkdir(parents=True)
+        stale.write_bytes(b"old design")
+        output = StringIO()
+        call_command("puzzle_previews", stdout=output)
+        self.assertIn("Drew 1 previews, removed 1 outdated ones", output.getvalue())
+        self.assertFalse(stale.exists())
+        self.assertTrue(previews.preview_path(self.puzzle).exists())

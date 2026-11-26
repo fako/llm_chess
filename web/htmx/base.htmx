@@ -5,20 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#FAF6EE">
   <title>{% block title %}{{ _("site.name") }}{% endblock %}</title>
-  <meta name="description" content="{{ _('site.description') }}">
+  {# Link previews in other apps. Pages override the blocks to describe themselves, like a puzzle does. #}
+  <meta name="description" content="{% block description %}{{ _('site.description') }}{% endblock %}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ _('site.name') }}">
-  <meta property="og:title" content="{{ _('site.name') }}">
-  <meta property="og:description" content="{{ _('site.description') }}">
-  {% if request %}
-  <meta property="og:url" content="{{ absolute_url(request, request.path) }}">
-  <meta property="og:image" content="{{ absolute_url(request, static('img/promo.png')) }}">
-  {% endif %}
+  <meta property="og:title" content="{% block preview_title %}{{ _('site.name') }}{% endblock %}">
+  <meta property="og:description" content="{{ self.description() }}">
+  {% if request %}<meta property="og:url" content="{{ absolute_url(request, request.path) }}">{% endif %}
+  <meta property="og:locale" content="{{ 'nl_NL' if get_language() == 'nl' else 'en_GB' }}">
+  {% block preview_image %}
+  {% if request %}<meta property="og:image" content="{{ absolute_url(request, static('img/promo.png')) }}">{% endif %}
   <meta property="og:image:width" content="1119">
   <meta property="og:image:height" content="1113">
   <meta property="og:image:alt" content="{{ _('site.name') }}">
-  <meta property="og:locale" content="{{ 'nl_NL' if get_language() == 'nl' else 'en_GB' }}">
   <meta name="twitter:card" content="summary">
+  {% endblock %}
   <link rel="stylesheet" href="{{ static('css/tailwind.build.css') }}">
   <script src="{{ static('js/htmx.min.js') }}" defer></script>
   {% block scripts %}{% endblock %}
@@ -38,34 +39,41 @@
           <input type="hidden" name="next" value="{{ request.get_full_path() }}">
           <input type="hidden" name="language" value="{{ switch.code }}">
           <button type="submit" lang="{{ switch.code }}" aria-label="{{ switch.name }}" title="{{ switch.name }}"
-                  class="{{ '' if request.user.is_authenticated else '-mr-2 ' }}flex h-11 w-11 items-center justify-center rounded-lg hover:bg-line/50">
+                  class="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-line/50">
             <img src="{{ switch.flag }}" alt="" class="h-4 w-6 rounded-sm object-cover ring-1 ring-ink/15">
           </button>
         </form>
-        {% if request.user.is_authenticated %}
-          <details class="menu relative">
-            <summary class="-mr-2 flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-ink
-                            hover:bg-line/50 [&::-webkit-details-marker]:hidden" aria-label="{{ _('web.menu.label') }}">
-              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-            </summary>
-            <nav class="card absolute right-0 z-50 mt-2 w-56 overflow-hidden py-1">
-              <a href="{{ url('puzzles:home') }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.more_puzzles") }}</a>
+        <details class="menu relative">
+          <summary class="-mr-2 flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-ink
+                          hover:bg-line/50 [&::-webkit-details-marker]:hidden" aria-label="{{ _('web.menu.label') }}">
+            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </summary>
+          <nav class="card absolute right-0 z-50 mt-2 w-56 overflow-hidden py-1">
+            <a href="{{ url('puzzles:home') }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.more_puzzles") }}</a>
+            {% if request.user.is_authenticated %}
               <a href="{{ url('accounts:profile') }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.my_results") }}</a>
               <form method="post" action="{{ url('accounts:logout') }}" class="border-t border-line">
                 {{ csrf_input }}
                 <button class="block w-full px-4 py-3 text-left hover:bg-paper">{{ _("web.menu.sign_out") }}</button>
               </form>
-            </nav>
-          </details>
-          <script>
-            document.addEventListener("click", function (event) {
-              document.querySelectorAll("details.menu[open]").forEach(function (menu) {
-                if (!menu.contains(event.target)) { menu.removeAttribute("open"); }
-              });
+            {% else %}
+              {# Come back to the puzzle after logging in, but not to the login page itself #}
+              {% set back = '?' ~ {'next': request.path}|urlencode if request.resolver_match and request.resolver_match.app_name == 'puzzles' else '' %}
+              <div class="border-t border-line">
+                <a href="{{ url('accounts:login') }}{{ back }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.log_in") }}</a>
+                <a href="{{ url('accounts:signup') }}{{ back }}" class="block px-4 py-3 hover:bg-paper">{{ _("web.menu.sign_up") }}</a>
+              </div>
+            {% endif %}
+          </nav>
+        </details>
+        <script>
+          document.addEventListener("click", function (event) {
+            document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+              if (!menu.contains(event.target)) { menu.removeAttribute("open"); }
             });
-          </script>
-        {% endif %}
+          });
+        </script>
       </div>
     </div>
   </header>

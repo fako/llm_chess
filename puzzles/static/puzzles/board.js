@@ -1,4 +1,6 @@
 // Tap a piece, then tap its destination. The server decides whether a move is the solution.
+// Visitors without an account may look around, but get asked to log in or sign up as soon as they play or take a hint.
+// The share button hands the puzzle to the share sheet of the device, or copies its link where there is none.
 (function () {
   "use strict";
 
@@ -49,7 +51,18 @@
     });
   }
 
+  function askAccount() {
+    const dialog = document.getElementById("account-dialog");
+    if (dialog) {
+      dialog.showModal();
+    }
+  }
+
   function submit(puzzle, uci) {
+    if (puzzle.hasAttribute("data-needs-account")) {
+      askAccount();
+      return;
+    }
     clearSelection(puzzle);
     htmx.ajax("POST", puzzle.dataset.moveUrl, {
       target: "#puzzle",
@@ -90,9 +103,58 @@
     puzzle.appendChild(picker);
   }
 
+  function showCopied(url, copied) {
+    const dialog = document.getElementById("share-dialog");
+    if (!dialog) {
+      return;
+    }
+    dialog.querySelectorAll("[data-share-copied]").forEach(function (element) { element.hidden = !copied; });
+    dialog.querySelectorAll("[data-share-manual]").forEach(function (element) { element.hidden = copied; });
+    const link = dialog.querySelector("[data-share-link]");
+    link.value = url;
+    dialog.showModal();
+    if (!copied) {
+      link.select();
+    }
+  }
+
+  function share(button) {
+    const url = button.dataset.shareUrl;
+    const data = { title: button.dataset.shareTitle, text: button.dataset.shareText, url: url };
+    if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+      navigator.share(data).catch(function (error) {
+        if (error.name !== "AbortError") {  // people closing the share sheet themselves is no error
+          copy(url);
+        }
+      });
+      return;
+    }
+    copy(url);
+  }
+
+  function copy(url) {
+    if (!navigator.clipboard) {  // only available over https
+      showCopied(url, false);
+      return;
+    }
+    navigator.clipboard.writeText(url).then(
+      function () { showCopied(url, true); },
+      function () { showCopied(url, false); }
+    );
+  }
+
   document.addEventListener("click", function (event) {
     const puzzle = getPuzzle();
     if (!puzzle || !puzzle.contains(event.target)) {
+      return;
+    }
+    const shareButton = event.target.closest("[data-share-url]");
+    if (shareButton) {
+      share(shareButton);
+      return;
+    }
+    if (event.target.closest("[data-ask-account]")) {
+      askAccount();
       return;
     }
     const promotion = event.target.closest("[data-promotion]");
@@ -128,4 +190,12 @@
   document.addEventListener("htmx:afterSwap", function () {
     selected = null;
   });
+
+  // The board stays as it was when visitors cancel, without the piece they picked up
+  document.addEventListener("close", function (event) {
+    const puzzle = getPuzzle();
+    if (puzzle && event.target.id === "account-dialog") {
+      clearSelection(puzzle);
+    }
+  }, true);
 })();
